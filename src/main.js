@@ -46,6 +46,44 @@ function getFaceCenter() {
   return { cx: r.left + r.width / 2, cy: r.top + r.height / 2 }
 }
 
+function shortestDiffDeg(from, to) {
+  // returns diff in range [-180, 180)
+  return ((to - from + 540) % 360) - 180
+}
+
+function animateArmTo(idx, targetDeg, ms = 160) {
+  const start = performance.now()
+  const from = state.armDeg[idx]
+  const diff = shortestDiffDeg(from, targetDeg)
+
+  function easeOut(t) {
+    // quick, gentle settle
+    return 1 - Math.pow(1 - t, 3)
+  }
+
+  function frame(now) {
+    const t = Math.min(1, (now - start) / ms)
+    state.armDeg[idx] = normalizeDeg(from + diff * easeOut(t))
+    render()
+    if (t < 1) requestAnimationFrame(frame)
+  }
+
+  requestAnimationFrame(frame)
+}
+
+function snapArm(idx) {
+  if (state.draggingArm !== null) return;
+  if (state.draggingDial !== null) return;
+  animateArmTo(idx, snapToSymbol(state.armDeg[idx]))
+}
+
+// wheel snap timers (one per arm)
+const wheelSnapTimers = [null, null, null]
+function scheduleWheelSnap(idx, delayMs = 120) {
+  if (wheelSnapTimers[idx]) clearTimeout(wheelSnapTimers[idx])
+  wheelSnapTimers[idx] = setTimeout(() => snapArm(idx), delayMs)
+}
+
 // Convert pointer position to a CSS-friendly degree angle.
 // 0° is to the right, increases clockwise.
 function degFromPointer(clientX, clientY) {
@@ -116,10 +154,12 @@ arms.forEach((armEl, idx) => {
 
   armEl.addEventListener('pointerup', () => {
     state.draggingArm = null
+    snapArm(idx)
   })
 
   armEl.addEventListener('pointercancel', () => {
     state.draggingArm = null
+    snapArm(idx)
   })
 })
 
@@ -152,8 +192,10 @@ dials.forEach((dialEl, idx) => {
   })
 
   function endDialDrag() {
-    state.draggingDial = null
-    state.draggingDialPointerId = null
+    const idxToSnap = state.draggingDial;
+    state.draggingDial = null;
+    state.draggingDialPointerId = null;
+    if (idxToSnap !== null ) snapArm(idxToSnap)
   }
 
   dialEl.addEventListener('pointerup', endDialDrag)
@@ -179,6 +221,7 @@ dials.forEach((dialEl, idx) => {
 
     state.armDeg[idx] = normalizeDeg(state.armDeg[idx] + delta)
     render()
+    scheduleWheelSnap(idx)
   }, { passive: false })
 })
 
@@ -190,6 +233,7 @@ faceEl.addEventListener('wheel', (e) => {
   const idx = state.selectedArm
   state.armDeg[idx] = normalizeDeg(state.armDeg[idx] + delta)
   render()
+  scheduleWheelSnap(idx)
 }, { passive: false })
 
 // Concentrate: animate arms to random snapped symbol angles
