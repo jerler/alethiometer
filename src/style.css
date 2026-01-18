@@ -53,6 +53,14 @@ button:hover {
 }
 
 .face {
+  --dial-size: 62px;
+  /* Put the dial center near the perimeter:
+     50% = face radius
+     - half dial = dial radius
+     - gap = how much it sits outside the rim */
+  --dial-gap: 6px;
+  --dial-radius: calc(50% + (var(--dial-size) / 2) + var(--dial-gap));
+
   position: relative;
   width: min(72vmin, 560px);
   aspect-ratio: 1 / 1;
@@ -61,7 +69,6 @@ button:hover {
   background: radial-gradient(circle at 50% 50%, rgba(0,0,0,0.03), rgba(0,0,0,0.08));
   user-select: none;
   touch-action: none; /* important for pointer dragging on mobile */
-  overflow: hidden;
 }
 
 .tick-ring {
@@ -107,4 +114,54 @@ button:hover {
 .arm.selected {
   outline: 3px solid rgba(0, 0, 0, 0.25);
   outline-offset: 6px;
+}
+
+/* Dials placed evenly in thirds: 12, 4, 8 o’clock */
+.dial {
+  position: absolute;
+  
+  width: var(--dial-size);
+  height: var(--dial-size);
+  border-radius: 50%;
+
+  /* polar positioning around center */
+  left: calc(50% + var(--dial-radius) * var(--dx));
+  top:  calc(50% + var(--dial-radius) * var(--dy));
+  transform: translate(-50%, -50%);
+
+  background: radial-gradient(circle at 35% 35%, rgba(255,255,255,0.75), rgba(0,0,0,0.10));
+  border: 2px solid rgba(0, 0, 0, 0.28);
+  box-shadow: 0 4px 14px rgba(0,0,0,0.10);
+  
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+  z-index: 3;
+}
+
+.dial::before {
+  content: "";
+  position: absolute;
+  inset: -6px;
+  border-radius: 50%;
+  border: 2px solid rgba(0,0,0,0.18);
+  background: rgba(0,0,0,0.03);
+}
+
+.dial:active {
+  cursor: grabbing;
+}
+
+/* Unit circle components (x,y) with y-down:
+   top: (0, -1)
+   4 o'clock (30°): (0.866, 0.5)
+   8 o'clock (150°): (-0.866, 0.5)
+*/
+.dial-0 { --dx: 0;      --dy: -1; } /* top */
+.dial-1 { --dx: 0.866;  --dy: 0.5; } /* bottom-right */
+.dial-2 { --dx: -0.866; --dy: 0.5; } /* bottom-left */
+
+.dial.selected {
+  outline: 3px solid rgba(0, 0, 0, 0.25);
+  outline-offset: 5px;
 }

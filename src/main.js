@@ -6,6 +6,8 @@ const readoutEl = document.getElementById('readout')
 const concentrateBtn = document.getElementById('concentrate')
 const resetBtn = document.getElementById('reset')
 const tickRing = document.getElementById('tickRing')
+const dials = Array.from(document.querySelectorAll('.dial'))
+const DIAL_SENSITIVITY = 0.75 // degrees per pixel
 
 // ---- State ----
 const state = {
@@ -14,6 +16,10 @@ const state = {
   armDeg: [20, 140, 260],
   draggingArm: null,
   symbolCount: 36, // pretend there are 36 symbols around the face
+  draggingDial: null,
+  draggingDialPointerId: null,
+  dragStartY: 0,
+  dragStartDeg: 0
 }
 
 // ---- Helpers ----
@@ -31,6 +37,7 @@ function snapToSymbol(d) {
 function setSelectedArm(idx) {
   state.selectedArm = idx
   arms.forEach((el, i) => el.classList.toggle('selected', i === idx))
+  dials.forEach((el, i) => el.classList.toggle('selected', i === idx))
   render()
 }
 
@@ -52,7 +59,7 @@ function degFromPointer(clientX, clientY) {
 }
 
 function render() {
-  state.armDeg = state.armDeg.map(normalizeDeg)
+  state.armDeg = state.armDeg.map(normalizeDeg);
 
   for (let i = 0; i < arms.length; i++) {
     arms[i].style.transform = `translate(0, -50%) rotate(${state.armDeg[i]}deg)`
@@ -114,6 +121,65 @@ arms.forEach((armEl, idx) => {
   armEl.addEventListener('pointercancel', () => {
     state.draggingArm = null
   })
+})
+
+// Dials: click/drag/wheel to control the corresponding arm
+dials.forEach((dialEl, idx) => {
+  dialEl.addEventListener('pointerdown', (e) => {
+    e.preventDefault()
+    setSelectedArm(idx)
+
+    state.draggingDial = idx;
+    state.draggingDialPointerId = e.pointerId;
+    state.dragStartY = e.clientY;
+    state.dragStartDeg = state.armDeg[idx];
+
+    dialEl.setPointerCapture(e.pointerId)
+  })
+
+  dialEl.addEventListener('pointermove', (e) => {
+    if (state.draggingDial !== idx) return;
+    if (state.draggingDialPointerId !== e.pointerId ) return;
+    if ((e.buttons & 1) !== 1) return; //stops the arm from moving just by hovering over the dials
+
+    const deltaY = e.clientY - state.dragStartY;
+
+    // Drag UP (deltaY negative) => clockwise => INCREASE degrees
+    const next = state.dragStartDeg + (-deltaY * DIAL_SENSITIVITY)
+
+    state.armDeg[idx] = normalizeDeg(next)
+    render()
+  })
+
+  function endDialDrag() {
+    state.draggingDial = null
+    state.draggingDialPointerId = null
+  }
+
+  dialEl.addEventListener('pointerup', endDialDrag)
+  dialEl.addEventListener('pointercancel', endDialDrag)
+  dialEl.addEventListener('lostpointercapture', endDialDrag)
+
+  // dialEl.addEventListener('pointerup', () => {
+  //   state.dragginDial = null
+  // })
+  // dialEl.addEventListener('pointercancel', () => {
+  //   state.draggingDial = null
+  // })
+
+
+
+  dialEl.addEventListener('wheel', (e) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setSelectedArm(idx)
+
+    const speed = e.shiftKey ? 0.2 : 1.0
+    const delta = Math.sign(e.deltaY) * speed
+
+    state.armDeg[idx] = normalizeDeg(state.armDeg[idx] + delta)
+    render()
+  }, { passive: false })
 })
 
 // scroll anywhere on face to rotate selected arm
