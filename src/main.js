@@ -12,6 +12,9 @@ const tickRing = document.getElementById('tickRing')
 const dials = Array.from(document.querySelectorAll('.dial'))
 
 const DIAL_SENSITIVITY = 0.75 // degrees per pixel
+const WHEEL_SENSITIVITY = 0.08  // degrees per wheel deltaY unit 
+const WHEEL_SENSITIVITY_FINE = 0.015 // with Shift
+
 
 // ---- State ----
 const state = {
@@ -23,6 +26,7 @@ const state = {
   draggingDial: null,
   draggingDialPointerId: null,
   dragStartY: 0,
+  dragStartX: 0,
   dragStartDeg: 0
 }
 
@@ -191,6 +195,7 @@ dials.forEach((dialEl, idx) => {
     state.draggingDial = idx;
     state.draggingDialPointerId = e.pointerId;
     state.dragStartY = e.clientY;
+    state.dragStartX = e.clientX;
     state.dragStartDeg = state.armDeg[idx];
 
     dialEl.setPointerCapture(e.pointerId)
@@ -201,12 +206,18 @@ dials.forEach((dialEl, idx) => {
     if (state.draggingDialPointerId !== e.pointerId ) return;
     if ((e.buttons & 1) !== 1) return; //stops the arm from moving just by hovering over the dials
 
-    const deltaY = e.clientY - state.dragStartY;
+    let delta;
+    if (idx === 0) {
+      // Top dial - right = clockwise rotation, left = counterclockwise rotation
+      const deltaX = e.clientX - state.dragStartX;
+      delta = deltaX * DIAL_SENSITIVITY;
+    } else {
+      // Other two dials - up = clockwise, down = counterclockwise
+      const deltaY = e.clientY - state.dragStartY;
+      delta = -deltaY * DIAL_SENSITIVITY;
+    }
 
-    // Drag UP (deltaY negative) => clockwise => INCREASE degrees
-    const next = state.dragStartDeg + (-deltaY * DIAL_SENSITIVITY)
-
-    state.armDeg[idx] = normalizeDeg(next)
+    state.armDeg[idx] = normalizeDeg(state.dragStartDeg + delta)
     render()
   })
 
@@ -229,14 +240,13 @@ dials.forEach((dialEl, idx) => {
   // })
 
 
-
   dialEl.addEventListener('wheel', (e) => {
     e.preventDefault()
     e.stopPropagation()
     setSelectedArm(idx)
 
-    const speed = e.shiftKey ? 0.2 : 1.0
-    const delta = Math.sign(e.deltaY) * speed
+    const k = e.shiftKey ? WHEEL_SENSITIVITY_FINE : WHEEL_SENSITIVITY
+    const delta = e.deltaY * k  // use real wheel magnitude
 
     state.armDeg[idx] = normalizeDeg(state.armDeg[idx] + delta)
     render()
@@ -247,9 +257,10 @@ dials.forEach((dialEl, idx) => {
 // scroll anywhere on face to rotate selected arm
 faceEl.addEventListener('wheel', (e) => {
   e.preventDefault()
-  const speed = e.shiftKey ? 0.2 : 1.0 // hold shift for fine tuning
-  const delta = Math.sign(e.deltaY) * speed
+  const k = e.shiftKey ? WHEEL_SENSITIVITY_FINE : WHEEL_SENSITIVITY
+  const delta = e.deltaY * k
   const idx = state.selectedArm
+
   state.armDeg[idx] = normalizeDeg(state.armDeg[idx] + delta)
   render()
   scheduleWheelSnap(idx)
@@ -285,17 +296,12 @@ function animateToTargets(targetDegs, ms = 900) {
 }
 
 concentrateBtn.addEventListener('click', () => {
-  const step = 360 / state.symbolCount
-  const targets = [0, 1, 2].map(() => {
-    const slot = Math.floor(Math.random() * state.symbolCount)
-    return slot * step
-  })
-  animateToTargets(targets, 1100)
-})
+  
+});
 
 resetBtn.addEventListener('click', () => {
-  state.armDeg = [20, 140, 260]
-  setSelectedArm(0)
+  setSelectedArm(0);
+  animateToTargets([20, 140, 260], 500)
   render()
 })
 
