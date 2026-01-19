@@ -1,12 +1,16 @@
 import './style.css'
+import { symbolForArmDeg } from './constants.js'
+
 
 const faceEl = document.getElementById('face')
 const arms = Array.from(document.querySelectorAll('.arm'))
 const readoutEl = document.getElementById('readout')
+const symbolsEl = document.getElementById('symbols')
 const concentrateBtn = document.getElementById('concentrate')
 const resetBtn = document.getElementById('reset')
 const tickRing = document.getElementById('tickRing')
 const dials = Array.from(document.querySelectorAll('.dial'))
+
 const DIAL_SENSITIVITY = 0.75 // degrees per pixel
 
 // ---- State ----
@@ -109,6 +113,21 @@ function render() {
     `armDeg: ${state.armDeg.map(d => d.toFixed(1)).join(', ')}\n` +
     `symbolStep: ${step.toFixed(2)}°\n` +
     `snapped: ${state.armDeg.map(snapToSymbol).join(', ')}`
+  
+  const symbols = state.armDeg.map(symbolForArmDeg)
+
+  symbolsEl.innerHTML = symbols
+    .map((s, i) => {
+      const label = `Arm ${i + 1}`
+      return `
+        <div class="symbol-row">
+          <div>${label}</div>
+          <div class="symbol-name">${s.name}</div>
+        </div>
+      `
+    })
+    .join('');
+
 }
 
 // ---- Tick marks (purely visual) ----

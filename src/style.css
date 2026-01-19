@@ -165,3 +165,27 @@ button:hover {
   outline: 3px solid rgba(0, 0, 0, 0.25);
   outline-offset: 5px;
 }
+
+.symbols {
+  margin-top: 12px;
+  padding: 10px;
+  border-radius: 12px;
+  background: rgba(0, 0, 0, 0.04);
+  font-size: 14px;
+}
+
+.symbol-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 6px 0;
+  border-bottom: 1px solid rgba(0,0,0,0.08);
+}
+
+.symbol-row:last-child {
+  border-bottom: none;
+}
+
+.symbol-name {
+  font-weight: 600;
+}
