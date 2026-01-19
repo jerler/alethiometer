@@ -1,34 +1,42 @@
 import './style.css'
 import { symbolForArmDeg } from './constants.js'
 
-
 const faceEl = document.getElementById('face')
 const arms = Array.from(document.querySelectorAll('.arm'))
-const readoutEl = document.getElementById('readout')
 const symbolsEl = document.getElementById('symbols')
 const concentrateBtn = document.getElementById('concentrate')
 const resetBtn = document.getElementById('reset')
-const tickRing = document.getElementById('tickRing')
 const dials = Array.from(document.querySelectorAll('.dial'))
 
 const DIAL_SENSITIVITY = 0.75 // degrees per pixel
 const WHEEL_SENSITIVITY = 0.08  // degrees per wheel deltaY unit 
 const WHEEL_SENSITIVITY_FINE = 0.015 // with Shift
+const ANSWER_ARM_IDX = 3;
 
 
 // ---- State ----
 const state = {
   selectedArm: 0,
   // degrees, 0 = pointing right, 90 = down (because CSS rotate is clockwise)
-  armDeg: [20, 140, 260],
+  armDeg: [20, 140, 260, 320],
   draggingArm: null,
-  symbolCount: 36, // pretend there are 36 symbols around the face
+  symbolCount: 36,
   draggingDial: null,
   draggingDialPointerId: null,
   dragStartY: 0,
   dragStartX: 0,
   dragStartDeg: 0
 }
+
+const idleArm = {
+  // degrees per second (signed)
+  velocity: 30, // current velocity
+  targetVel: -12, // where we're drifting toward
+  nextChangeAt: 0, // timestamp (ms) when we pick a new target
+}
+
+let lastIdleTime = performance.now();
+
 
 // ---- Helpers ----
 function normalizeDeg(d) {
@@ -44,7 +52,7 @@ function snapToSymbol(d) {
 
 function setSelectedArm(idx) {
   state.selectedArm = idx
-  arms.forEach((el, i) => el.classList.toggle('selected', i === idx))
+  arms.slice(0,3).forEach((el, i) => el.classList.toggle('selected', i === idx))
   dials.forEach((el, i) => el.classList.toggle('selected', i === idx))
   render()
 }
@@ -52,6 +60,39 @@ function setSelectedArm(idx) {
 function getFaceCenter() {
   const r = faceEl.getBoundingClientRect()
   return { cx: r.left + r.width / 2, cy: r.top + r.height / 2 }
+}
+
+function rand(min, max) {
+  return min + Math.random() * (max - min);
+}
+
+function pickNewIdleTarget(now) {
+  const dir = Math.random() < 0.55 ? -1 : 1
+  const speed = Math.random() < 0.15 ? rand(18, 45) : rand(9, 16)
+  idleArm.targetVel = dir * speed;
+  idleArm.nextChangeAt = now + rand(900, 2600); // how long before changing its mind again
+}
+
+function stepIdle(dt) {
+  // smoothly drift vel toward targetVel (critically damped-ish)
+  const chase = 2.2 // higher = responds faster to target
+  idleArm.velocity += (idleArm.targetVel - idleArm.velocity) * (1 - Math.exp(-chase * dt))
+  state.armDeg[ANSWER_ARM_IDX] = normalizeDeg(state.armDeg[ANSWER_ARM_IDX] + idleArm.velocity * dt)
+}
+
+function renderArm(idx) {
+  arms[idx].style.transform = `translate(0, -50%) rotate(${normalizeDeg(state.armDeg[idx])}deg)`
+}
+
+function idleLoop(now) {
+  const dt = Math.min(0.05, (now - lastIdleTime) / 1000);
+  lastIdleTime = now;
+
+  if (now >= idleArm.nextChangeAt) pickNewIdleTarget(now);
+
+  stepIdle(dt)
+  renderArm(ANSWER_ARM_IDX) // only update the idle arm specifically
+  requestAnimationFrame(idleLoop)
 }
 
 function shortestDiffDeg(from, to) {
@@ -86,7 +127,7 @@ function snapArm(idx) {
 }
 
 // wheel snap timers (one per arm)
-const wheelSnapTimers = [null, null, null]
+const wheelSnapTimers = Array(3).fill(null);
 function scheduleWheelSnap(idx, delayMs = 120) {
   if (wheelSnapTimers[idx]) clearTimeout(wheelSnapTimers[idx])
   wheelSnapTimers[idx] = setTimeout(() => snapArm(idx), delayMs)
@@ -111,17 +152,11 @@ function render() {
     arms[i].style.transform = `translate(0, -50%) rotate(${state.armDeg[i]}deg)`
   }
 
-  const step = 360 / state.symbolCount
-  readoutEl.textContent =
-    `selectedArm: ${state.selectedArm}\n` +
-    `armDeg: ${state.armDeg.map(d => d.toFixed(1)).join(', ')}\n` +
-    `symbolStep: ${step.toFixed(2)}°\n` +
-    `snapped: ${state.armDeg.map(snapToSymbol).join(', ')}`
-  
   const symbols = state.armDeg.map(symbolForArmDeg)
 
   symbolsEl.innerHTML = symbols
     .map((s, i) => {
+      if (i===3) return;
       const label = `Arm ${i + 1}`
       return `
         <div class="symbol-row">
@@ -134,33 +169,10 @@ function render() {
 
 }
 
-// ---- Tick marks (purely visual) ----
-function buildTicks() {
-  const N = state.symbolCount
-  const host = document.createElement('div')
-  host.style.position = 'absolute'
-  host.style.inset = '0'
-  host.style.borderRadius = '50%'
-
-  for (let i = 0; i < N; i++) {
-    const tick = document.createElement('div')
-    tick.style.position = 'absolute'
-    tick.style.left = '50%'
-    tick.style.top = '50%'
-    tick.style.width = i % 3 === 0 ? '10px' : '6px'
-    tick.style.height = '2px'
-    tick.style.transformOrigin = '0% 50%'
-    tick.style.transform = `rotate(${(i * 360) / N}deg) translate(0, -50%) translate(180%, 0)`
-    tick.style.background = 'rgba(0,0,0,0.35)'
-    host.appendChild(tick)
-  }
-  tickRing.appendChild(host)
-}
-
 // ---- Interactions ----
 
 // click an arm to select
-arms.forEach((armEl, idx) => {
+arms.slice(0,3).forEach((armEl, idx) => {
   armEl.addEventListener('pointerdown', (e) => {
     e.preventDefault()
     setSelectedArm(idx)
@@ -301,11 +313,12 @@ concentrateBtn.addEventListener('click', () => {
 
 resetBtn.addEventListener('click', () => {
   setSelectedArm(0);
-  animateToTargets([20, 140, 260], 500)
-  render()
+  animateToTargets([20, 140, 260], 500);
 })
 
 // ---- init ----
-buildTicks()
 setSelectedArm(0)
 render()
+
+pickNewIdleTarget(performance.now())
+requestAnimationFrame(idleLoop)

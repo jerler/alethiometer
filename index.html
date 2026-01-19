@@ -2,20 +2,18 @@
   <div id="app">
     <div class="panel">
       <h1>Alethiometer Prototype</h1>
-      <p>Click an arm to select it. Drag to rotate. Scroll to fine-tune.</p>
+      <p>Click an arm to select it. Drag to rotate. Hold shift to fine-tune.</p>
+
+      <div class="symbols" id="symbols"></div>
 
       <div class="buttons">
         <button id="concentrate">Concentrate</button>
         <button id="reset">Reset</button>
       </div>
-
-      <div class="readout" id="readout"></div>
-      <div class="symbols" id="symbols"></div>
     </div>
 
     <div class="stage">
       <div id="face" class="face" aria-label="Alethiometer face">
-        <div class="tick-ring" id="tickRing"></div>
 
         <div class="dial dial-0" data-arm="0" aria-label="Dial 1"></div>
         <div class="dial dial-1" data-arm="1" aria-label="Dial 2"></div>
@@ -24,6 +22,7 @@
         <div class="arm arm-0" data-arm="0"></div>
         <div class="arm arm-1" data-arm="1"></div>
         <div class="arm arm-2" data-arm="2"></div>
+        <div class="arm arm-3" data-arm="3"></div>
 
         <div class="hub"></div>
       </div>
