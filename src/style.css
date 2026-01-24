@@ -1,3 +1,9 @@
+html, body {
+  background: #050c1a;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+
 :root {
   font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
   line-height: 1.4;
@@ -150,23 +156,14 @@ button:hover {
   top:  calc(var(--center-y) + (var(--dial-radius) + var(--dial-gap)) * var(--dy) + var(--dial-nudge-y));
   transform: translate(-50%, -50%);
 
-  background: radial-gradient(circle at 35% 35%, rgba(255,255,255,0.75), rgba(0,0,0,0.10));
-  border: 2px solid rgba(0, 0, 0, 0.28);
-  box-shadow: 0 4px 14px rgba(0,0,0,0.10);
+  background: transparent;
+  border: none;
+  box-shadow: none;
   
   cursor: grab;
   touch-action: none;
   user-select: none;
   z-index: 3;
-}
-
-.dial::before {
-  content: "";
-  position: absolute;
-  inset: -6px;
-  border-radius: 50%;
-  border: 2px solid rgba(0,0,0,0.18);
-  background: rgba(0,0,0,0.03);
 }
 
 .dial:active {
