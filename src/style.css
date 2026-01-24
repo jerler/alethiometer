@@ -44,40 +44,66 @@ button:hover {
 }
 
 .face {
-  --dial-size: 62px;
-  /* Put the dial center near the perimeter:
-     50% = face radius
-     - half dial = dial radius
-     - gap = how much it sits outside the rim */
-  --dial-gap: 6px;
-  --dial-radius: calc(50% + (var(--dial-size) / 2) + var(--dial-gap));
+  /* ---- calibration knobs ---- */
+  --center-x: 50%;
+  --center-y: 50%;
+
+  /* Move the image relative to the interactive center */
+  --img-shift-x: 0px;
+  --img-shift-y: -12px; /* start by pushing the image DOWN if it looks too low */
+
+  /* Scale the image slightly bigger than "contain" */
+  --img-scale: 1.05;
+
+  --dial-size: 45px;
+  --dial-gap-x: 5px;
+  --dial-gap-top: -5px;
+  --dial-gap-bottom: 0px;
 
   position: relative;
-  width: min(72vmin, 560px);
+  width: min(62vmin, 580px);
   aspect-ratio: 1 / 1;
-  border-radius: 50%;
-  border: 2px solid rgba(0, 0, 0, 0.25);
-  background: radial-gradient(circle at 50% 50%, rgba(0,0,0,0.03), rgba(0,0,0,0.08));
+  border: none;
+  overflow: visible;
+  background: none;
+
   user-select: none;
   touch-action: none; /* important for pointer dragging on mobile */
 }
 
+.face::before {
+  content: "";
+  position: absolute;
+  inset: -5%;
+
+  background-image: url('./assets/face.png');
+  /* background-size: calc(100% * var(--img-scale)); */
+  background-size: contain;
+  background-position: center;
+  background-repeat: no-repeat;
+
+  transform: translate(var(--img-shift-x), var(--img-shift-y));
+  pointer-events: none;
+  z-index: 0;
+}
+
 .hub {
   position: absolute;
-  left: 50%;
-  top: 50%;
+  left: var(--center-x);
+  top: var(--center-y);
   width: 28px;
   height: 28px;
   transform: translate(-50%, -50%);
   border-radius: 50%;
   background: rgba(0, 0, 0, 0.22);
   border: 2px solid rgba(255, 255, 255, 0.55);
+  z-index: 4;
 }
 
 .arm {
   position: absolute;
-  left: 50%;
-  top: 50%;
+  left: var(--center-x);
+  top: var(--center-y);
   width: 44%;
   height: 10px;
   transform-origin: 0% 50%;
@@ -85,6 +111,7 @@ button:hover {
   border-radius: 999px;
   cursor: grab;
   border: 1px solid rgba(0, 0, 0, 0.22);
+  z-index: 2;
 }
 
 .arm:active {
@@ -114,9 +141,13 @@ button:hover {
   height: var(--dial-size);
   border-radius: 50%;
 
+  --dial-radius: calc(50% + (var(--dial-size) / 2) + 6px);
+  --dial-gap: var(--dial-gap-bottom);
+  --dial-nudge-y: 0px;
+
   /* polar positioning around center */
-  left: calc(50% + var(--dial-radius) * var(--dx));
-  top:  calc(50% + var(--dial-radius) * var(--dy));
+  left: calc(var(--center-x) + (var(--dial-radius) + var(--dial-gap)) * var(--dx));
+  top:  calc(var(--center-y) + (var(--dial-radius) + var(--dial-gap)) * var(--dy) + var(--dial-nudge-y));
   transform: translate(-50%, -50%);
 
   background: radial-gradient(circle at 35% 35%, rgba(255,255,255,0.75), rgba(0,0,0,0.10));
@@ -142,14 +173,10 @@ button:hover {
   cursor: grabbing;
 }
 
-/* Unit circle components (x,y) with y-down:
-   top: (0, -1)
-   4 o'clock (30°): (0.866, 0.5)
-   8 o'clock (150°): (-0.866, 0.5)
-*/
-.dial-0 { --dx: 0;      --dy: -1; } /* top */
-.dial-1 { --dx: 0.866;  --dy: 0.5; } /* bottom-right */
-.dial-2 { --dx: -0.866; --dy: 0.5; } /* bottom-left */
+.dial-0 { --dx: 0;      --dy: -1; --dial-gap: var(--dial-gap-top); }
+.dial-1 { --dx: 0.866;  --dy: 0.5; --dial-gap: var(--dial-gap-x); --dial-nudge-y: -17px; }
+.dial-2 { --dx: -0.866; --dy: 0.5; --dial-gap: var(--dial-gap-x); --dial-nudge-y: -17px; }
+
 
 .dial.selected {
   outline: 3px solid rgba(0, 0, 0, 0.25);
