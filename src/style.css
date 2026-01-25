@@ -110,12 +110,16 @@ button:hover {
   cursor: grab;
   z-index: 2;
   background: none;
+  filter:
+    drop-shadow(2px 2px 2px #252525);
   border: none;
   pointer-events: none;
 }
 
 .arm:active {
   cursor: grabbing;
+  filter:
+    drop-shadow(4px 4px 4px #252525);
 }
 
 /* Overlay the SVG on top of the existing arm bar */
