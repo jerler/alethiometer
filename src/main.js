@@ -1,5 +1,9 @@
 import './style.css'
 import { symbolForArmDeg } from './constants.js'
+import arm0Url from './assets/arm-0.svg'
+import arm1Url from './assets/arm-1.svg'
+import arm2Url from './assets/arm-2.svg'
+import arm3Url from './assets/arm-3.svg'
 
 const faceEl = document.getElementById('face')
 const arms = Array.from(document.querySelectorAll('.arm'))
@@ -12,6 +16,16 @@ const DIAL_SENSITIVITY = 0.75 // degrees per pixel
 const WHEEL_SENSITIVITY = 0.08  // degrees per wheel deltaY unit 
 const WHEEL_SENSITIVITY_FINE = 0.015 // with Shift
 const ANSWER_ARM_IDX = 3;
+
+const armSvgUrls = [arm0Url, arm1Url, arm2Url, arm3Url]
+
+// attach each svg url to the corresponding arm element
+arms.forEach((armEl, i) => {
+  const img = armEl.querySelector('.arm-svg')
+  if (!img) return
+  img.src = armSvgUrls[i]
+  img.draggable = false
+})
 
 
 // ---- State ----
@@ -81,8 +95,18 @@ function stepIdle(dt) {
 }
 
 function renderArm(idx) {
-  arms[idx].style.transform = `translate(0, -50%) rotate(${normalizeDeg(state.armDeg[idx])}deg)`
+  arms[idx].style.transform = `rotate(${normalizeDeg(state.armDeg[idx])}deg)`;
 }
+
+function armIdxFromWheelEvent(e) {
+  const el = document.elementFromPoint(e.clientX, e.clientY);
+  const svg = el?.closest?.('.arm-svg');     // the clickable arm element
+  if (!svg) return null;
+  const armEl = svg.closest('.arm');
+  if (!armEl) return null;
+  return Number(armEl.dataset.arm);
+}
+
 
 function idleLoop(now) {
   const dt = Math.min(0.05, (now - lastIdleTime) / 1000);
@@ -149,7 +173,7 @@ function render() {
   state.armDeg = state.armDeg.map(normalizeDeg);
 
   for (let i = 0; i < arms.length; i++) {
-    arms[i].style.transform = `translate(0, -50%) rotate(${state.armDeg[i]}deg)`
+    arms[i].style.transform = `rotate(${state.armDeg[i]}deg)`
   }
 
   const symbols = state.armDeg.map(symbolForArmDeg)
@@ -268,13 +292,18 @@ dials.forEach((dialEl, idx) => {
 
 // scroll anywhere on face to rotate selected arm
 faceEl.addEventListener('wheel', (e) => {
-  e.preventDefault()
+  e.preventDefault();
+
+  const hoveredIdx = armIdxFromWheel(e);
+  const idx = (hoveredIdx !== null && hoveredIdx < 3) ? hoveredIdx : state.selectedArm;
+
+  if (idx !== state.selectedArm) setSelectedArm(idx);
+
   const k = e.shiftKey ? WHEEL_SENSITIVITY_FINE : WHEEL_SENSITIVITY
   const delta = e.deltaY * k
-  const idx = state.selectedArm
 
   state.armDeg[idx] = normalizeDeg(state.armDeg[idx] + delta)
-  render()
+  render();
   scheduleWheelSnap(idx)
 }, { passive: false })
 

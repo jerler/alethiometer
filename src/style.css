@@ -100,43 +100,66 @@ button:hover {
   width: 28px;
   height: 28px;
   transform: translate(-50%, -50%);
-  border-radius: 50%;
-  background: rgba(0, 0, 0, 0.22);
-  border: 2px solid rgba(255, 255, 255, 0.55);
-  z-index: 4;
 }
 
 .arm {
   position: absolute;
-  left: var(--center-x);
-  top: var(--center-y);
-  width: 44%;
-  height: 10px;
-  transform-origin: 0% 50%;
-  transform: translate(0, -50%) rotate(0deg);
-  border-radius: 999px;
+  inset: 0;
+  transform-origin: var(--center-x) var(--center-y);
+  transform: rotate(0deg);
   cursor: grab;
-  border: 1px solid rgba(0, 0, 0, 0.22);
   z-index: 2;
+  background: none;
+  border: none;
+  pointer-events: none;
 }
 
 .arm:active {
   cursor: grabbing;
 }
 
-.arm-0 { background: rgba(0, 0, 0, 0.55); }
-.arm-1 { background: rgba(0, 0, 0, 0.40); height: 8px; }
-.arm-2 { background: rgba(0, 0, 0, 0.28); height: 6px; }
-.arm-3 { 
-  background: rgba(0, 0, 0, 0.18); 
-  height: 10px; 
+/* Overlay the SVG on top of the existing arm bar */
+.arm::after {
+  content: "";
+  position: absolute;
+  inset: 0;                 /* fills the arm box */
+  background-repeat: no-repeat;
+  background-position: left center;
+  background-size: 100% 100%; /* stretch to arm box for alignment testing */
+  pointer-events: none;
+  z-index: 5;
+}
+
+.arm-svg {
+  position: absolute;
+  left: 78%;
+  top: var(--center-y);
+
+  /* anchor the SVG at its own left-middle */
+  transform-origin: 0% 32%;          /* pivot at left-middle */
+  transform: translate(0, -50%) rotate(90deg);
+
+  /* set a sensible size; adjust to match your art */
+  width: 18%;
+  height: auto;
+
+  cursor: grab;
+  pointer-events: auto;
+  /* user-select: none; */
+}
+
+.arm-1 .arm-svg { left: 77%; width: 12%; top: 52%; }
+.arm-2 .arm-svg { left: 79%; width: 5.5%; top: 56%; }
+.arm-3 .arm-svg { 
+  width: 3.2%;
+  left: 78.5%;
+  top: 57%;
   cursor: default;
   pointer-events: none;
 }
 
-.arm.selected {
-  outline: 3px solid rgba(0, 0, 0, 0.25);
-  outline-offset: 6px;
+.arm.selected svg{
+  
 }
 
 /* Dials placed evenly in thirds: 12, 4, 8 o’clock */
