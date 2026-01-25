@@ -294,7 +294,7 @@ dials.forEach((dialEl, idx) => {
 faceEl.addEventListener('wheel', (e) => {
   e.preventDefault();
 
-  const hoveredIdx = armIdxFromWheel(e);
+  const hoveredIdx = armIdxFromWheelEvent(e);
   const idx = (hoveredIdx !== null && hoveredIdx < 3) ? hoveredIdx : state.selectedArm;
 
   if (idx !== state.selectedArm) setSelectedArm(idx);
