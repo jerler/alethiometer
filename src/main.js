@@ -1,5 +1,5 @@
 import './style.css'
-import { symbolForArmDeg } from './constants.js'
+import { symbolForArmDeg, SYMBOL_RING } from './constants.js'
 import arm0Url from './assets/arm-0.svg'
 import arm1Url from './assets/arm-1.svg'
 import arm2Url from './assets/arm-2.svg'
@@ -11,6 +11,7 @@ const symbolsEl = document.getElementById('symbols')
 const concentrateBtn = document.getElementById('concentrate')
 const resetBtn = document.getElementById('reset')
 const dials = Array.from(document.querySelectorAll('.dial'))
+const symbolRingEl = document.getElementById('symbolRing')
 
 const DIAL_SENSITIVITY = 0.75 // degrees per pixel
 const WHEEL_SENSITIVITY = 0.08  // degrees per wheel deltaY unit 
@@ -169,6 +170,33 @@ function degFromPointer(clientX, clientY) {
   return degCW
 }
 
+function buildSymbols() {
+  symbolRingEl.innerHTML = ''
+  for (const s of SYMBOL_RING) {
+    if (s.iconUrl) {
+      const el = document.createElement('div')
+      el.className = 'symbol'
+      el.style.setProperty('--deg', `${s.deg}deg`)
+
+      // Apply appearance overrides (if present)
+      const a = s.appearance || {}
+
+      if (a.scale != null) el.style.setProperty('--sym-scale', String(a.scale))
+      if (a.rotate != null) el.style.setProperty('--sym-rot', `${a.rotate}deg`)
+      if (a.nudgeX != null) el.style.setProperty('--sym-nudge-x', `${a.nudgeX}px`)
+      if (a.nudgeY != null) el.style.setProperty('--sym-nudge-y', `${a.nudgeY}px`)
+      if (a.opacity != null) el.style.setProperty('--sym-opacity', String(a.opacity))
+
+      const img = document.createElement('img')
+      img.src = s.iconUrl
+      img.alt = s.name
+
+      el.appendChild(img)
+      symbolRingEl.appendChild(el)
+    }
+  }
+}
+
 function render() {
   state.armDeg = state.armDeg.map(normalizeDeg);
 
@@ -268,14 +296,6 @@ dials.forEach((dialEl, idx) => {
   dialEl.addEventListener('pointercancel', endDialDrag)
   dialEl.addEventListener('lostpointercapture', endDialDrag)
 
-  // dialEl.addEventListener('pointerup', () => {
-  //   state.dragginDial = null
-  // })
-  // dialEl.addEventListener('pointercancel', () => {
-  //   state.draggingDial = null
-  // })
-
-
   dialEl.addEventListener('wheel', (e) => {
     e.preventDefault()
     e.stopPropagation()
@@ -348,6 +368,7 @@ resetBtn.addEventListener('click', () => {
 // ---- init ----
 setSelectedArm(0)
 render()
+buildSymbols()
 
 pickNewIdleTarget(performance.now())
 requestAnimationFrame(idleLoop)
