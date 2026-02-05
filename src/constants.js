@@ -3,12 +3,24 @@ import anchor from './assets/symbols/anchor.png'
 import ant from './assets/symbols/ant.png'
 import bird from './assets/symbols/bird.png'
 import sun from './assets/symbols/sun.png'
+import hourglass from './assets/symbols/hourglass.png'
+import marionette from './assets/symbols/marionette.png'
 
 export const SYMBOL_STEP_DEG = 10
 
 // 0° is due north, increasing clockwise
 export const SYMBOL_RING = [
-  { deg: 0, name: 'Hourglass', primaryMeaning: 'Time', secondaryMeanings: ['death','change', 'inevitability', 'limitation','cyclical'] },
+  { 
+    deg: 0, 
+    name: 'Hourglass', 
+    iconUrl: hourglass,
+    appearance: {
+      scale: 0.65,
+      nudgeY: -15,
+    },
+    primaryMeaning: 'Time', 
+    secondaryMeanings: ['death','change', 'inevitability', 'limitation','cyclical'] 
+  },
   { 
     deg: 10, 
     name: 'Sun', 
@@ -20,7 +32,17 @@ export const SYMBOL_RING = [
     secondaryMeanings: ['bright light','authority', 'truth', 'heat','masculinity']
   },
   { deg: 20, name: 'Alpha & Omega', primaryMeaning: 'Sequence', secondaryMeanings: ['process','hierarchy','education'] },
-  { deg: 30, name: 'Marionette', primaryMeaning: 'Obedience', secondaryMeanings: ['submission','forced','control (or lack of)','entertainment'] },
+  { 
+    deg: 30, 
+    name: 'Marionette',
+    iconUrl: marionette,
+    appearance: {
+      scale: 0.60,
+      nudgeY: -20
+    },
+    primaryMeaning: 'Obedience', 
+    secondaryMeanings: ['submission','forced','control (or lack of)','entertainment'] 
+  },
   { deg: 40, name: 'Serpent', primaryMeaning: 'Cunning', secondaryMeanings: ['evil','natural wisdom', 'flexibility'] },
   { deg: 50, name: 'Cauldron', primaryMeaning: 'Alchemy', secondaryMeanings: ['craft','achieved wisdom', 'creation', 'cooking', 'magic'] },
   { 
