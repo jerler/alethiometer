@@ -1,10 +1,16 @@
-import apple from './assets/symbols/apple.png'
+import alphaOmega from './assets/symbols/alphaOmega.png'
 import anchor from './assets/symbols/anchor.png'
+import angel from './assets/symbols/angel.png'
 import ant from './assets/symbols/ant.png'
+import apple from './assets/symbols/apple.png'
+import beehive from './assets/symbols/beehive.png'
 import bird from './assets/symbols/bird.png'
-import sun from './assets/symbols/sun.png'
+import cauldron from './assets/symbols/cauldron.png'
+import helmet from './assets/symbols/helmet.png'
 import hourglass from './assets/symbols/hourglass.png'
 import marionette from './assets/symbols/marionette.png'
+import sun from './assets/symbols/sun.png'
+import serpent from './assets/symbols/serpent.png'
 
 export const SYMBOL_STEP_DEG = 10
 
@@ -17,21 +23,40 @@ export const SYMBOL_RING = [
     appearance: {
       scale: 0.65,
       nudgeY: -15,
+      nudgeX: 1.3
+    },
+    preview: {
+      scale: 1.1,
+      nudgeY: -38,
     },
     primaryMeaning: 'Time', 
-    secondaryMeanings: ['death','change', 'inevitability', 'limitation','cyclical'] 
+    secondaryMeanings: ['death','inevitability','mortality','ending','urgency','patience','change','aging','memory','countdown','cycles','impermanence',"fate","consequence","delay","opportunity","legacy",'falling','glass','sand','transition',"balance","equilibrium"] 
   },
   { 
     deg: 10, 
     name: 'Sun', 
     iconUrl: sun,
-    appearance: {
-      scale: 1.2
+    preview: {
+      scale: 1.5
     },
     primaryMeaning: 'Day', 
-    secondaryMeanings: ['bright light','authority', 'truth', 'heat','masculinity']
+    secondaryMeanings: ['truth','heat','bright light','power','certainty','awaken','exposure','guidance','authority','clarity','summer','masculinity','beginning','glory','life','vitality','health','renewal','hope','joy','success','blessing','energy','fertility','growth','creation','scorching']
   },
-  { deg: 20, name: 'Alpha & Omega', primaryMeaning: 'Sequence', secondaryMeanings: ['process','hierarchy','education'] },
+  { 
+    deg: 20, 
+    name: 'Alpha & Omega', 
+    iconUrl: alphaOmega,
+    appearance: {
+      scale: 0.8,
+      nudgeY: -3,
+      nudgeX: 3,
+    },
+    preview: {
+      scale: 1.2
+    },
+    primaryMeaning: 'Sequence', 
+    secondaryMeanings: ['lexicon','hierarchy','education','boundaries','communication','totality','origin','ending','definition','completion','naming','alphabet','rank','destiny','inevitability','ink','threshold','purpose','authority'] 
+  },
   { 
     deg: 30, 
     name: 'Marionette',
@@ -40,11 +65,43 @@ export const SYMBOL_RING = [
       scale: 0.60,
       nudgeY: -20
     },
+    preview: {
+      scale: 1,
+      nudgeY: -65
+    },
     primaryMeaning: 'Obedience', 
-    secondaryMeanings: ['submission','forced','control (or lack of)','entertainment'] 
+    secondaryMeanings: ['submission','force','control','entertainment','ridicule','exploitation','deception','performance','entertainment','mask','use','coersion','role','constraint','dependence','strings attached','fear'] 
   },
-  { deg: 40, name: 'Serpent', primaryMeaning: 'Cunning', secondaryMeanings: ['evil','natural wisdom', 'flexibility'] },
-  { deg: 50, name: 'Cauldron', primaryMeaning: 'Alchemy', secondaryMeanings: ['craft','achieved wisdom', 'creation', 'cooking', 'magic'] },
+  { 
+    deg: 40, 
+    name: 'Serpent', 
+    iconUrl: serpent,
+    appearance: {
+      scale: 0.6,
+      nudgeY: -20
+    },
+    preview: {
+      scale: 0.9,
+      nudgeY: -71
+    },
+    primaryMeaning: 'Cunning', 
+    secondaryMeanings: ['evil','natural wisdom','flexibility','danger','temptation','deceit','rebellion','secrecy','hidden knowledge','strategy','shedding','renewal','poison','seduction','hypnosis','silence','sin','betrayal'] 
+  },
+  { 
+    deg: 50, 
+    name: 'Cauldron', 
+    iconUrl: cauldron,
+    appearance: {
+      scale: 0.9,
+      nudgeY: -9
+    },
+    preview: {
+      scale: 1.2,
+      nudgeY: -11
+    },
+    primaryMeaning: 'Alchemy', 
+    secondaryMeanings: ['craft','achieved wisdom','creation','cooking','magic','transformation','beverage','combination','melting pot','ritual','concoction','process','patience','heat','nourishment','medicine','poison','tool'] 
+  },
   { 
     deg: 60, 
     name: 'Anchor', 
@@ -53,12 +110,60 @@ export const SYMBOL_RING = [
       scale: 1.2,
       rotate: 63
     },
+    preview: {
+      rotate: 70,
+      scale: 1.4,
+      nudgeY: 7,
+      nudgeX: -8
+    },
     primaryMeaning: 'Resilience', 
-    secondaryMeanings: ['steadfastness','prevention','hope','unmoving', 'stubborn','the unknown'] 
+    secondaryMeanings: ['steadfastness','prevention','hope','restraint','stuck','encumbrance','safety','stubborn','pause','dependability','weight','obligation','endurance','inertia','burden','harbour','drag','the deep','the unknown'] 
   },
-  { deg: 70, name: 'Angel', primaryMeaning: 'The good', secondaryMeanings: ['','disobedience'] },
-  { deg: 80, name: 'Helmet', primaryMeaning: 'Protection', secondaryMeanings: ['defence','narrow vision','honour','war','chivalry','chastity'] },
-  { deg: 90, name: 'Beehive', primaryMeaning: 'Productive work', secondaryMeanings: ['community','sweetness','light','matriarchy','hard work','scouting'] },
+  { 
+    deg: 70, 
+    name: 'Angel',
+    iconUrl: angel,
+    appearance: {
+      scale: 0.7,
+      nudgeY: -16
+    },
+    preview: {
+      scale: 1.1,
+      nudgeY: -28
+    },
+    primaryMeaning: 'Goodness', 
+    secondaryMeanings: ['disobedience'] 
+  },
+  { 
+    deg: 80, 
+    name: 'Helmet', 
+    iconUrl: helmet,
+    appearance: {
+      scale: 0.9,
+      nudgeX: 2,
+      nudgeY: -6
+    },
+    preview: {
+      nudgeX: 15,
+      scale: 1.2
+    },
+    primaryMeaning: 'Protection', 
+    secondaryMeanings: ['defence','narrow vision','honour','war','chivalry','chastity'] 
+  },
+  { 
+    deg: 90, 
+    name: 'Beehive',
+    iconUrl: beehive,
+    appearance: {
+      scale: 0.8,
+      nudgeY: -10
+    },
+    preview: {
+      scale: 1.2,
+    },
+    primaryMeaning: 'Productive work', 
+    secondaryMeanings: ['community','sweetness','light','matriarchy','hard work','scouting'] 
+  },
   { deg: 100, name: 'Moon', primaryMeaning: 'Night', secondaryMeanings: ['mystery','the uncanny','reflection','magic','cyclical','phase','feminity'] },
   { deg: 110, name: 'Madonna', primaryMeaning: 'Motherhood', secondaryMeanings: ['the feminine','worship'] },
   { 
@@ -68,6 +173,11 @@ export const SYMBOL_RING = [
     appearance: {
       rotate: -30,
       nudgeX: 3
+    },
+    preview: {
+      scale: 1.3,
+      rotate: -30,
+      nudgeX: 11
     },
     primaryMeaning: 'Sin', 
     secondaryMeanings: ['knowedge','vanity'] 
@@ -81,6 +191,11 @@ export const SYMBOL_RING = [
       rotate: 60,
       nudgeY: -12
     },
+    preview: {
+      rotate: 49,
+      scale: 1.14,
+      nudgeY:-40
+    },
     primaryMeaning: 'The soul', 
     secondaryMeanings: ['spring','marriage'] 
   },
@@ -93,6 +208,11 @@ export const SYMBOL_RING = [
       scale: 1.1,
       rotate: -135,
       nudgeY: 6
+    },
+    preview: {
+      scale: 1.2,
+      rotate: -135,
+      nudgeY: 10
     },
     primaryMeaning: 'Mechanical work', 
     secondaryMeanings: ['diligence','tedium'] 
@@ -133,12 +253,10 @@ export function snapNorthDegToSymbolDeg(northDeg) {
 // Get symbol name for a north-based degree (0..360 inclusive).
 export function symbolForNorthDeg(northDeg) {
   const snapped = snapNorthDegToSymbolDeg(northDeg)
-
-  // handle wrap: treat 360 as 0 for lookup, unless you explicitly want Owl at 360
-  const lookupDeg = snapped === 360 ? 360 : snapped
+  const lookupDeg = snapped % 360;
 
   const hit = SYMBOL_RING.find(s => s.deg === lookupDeg)
-  if (hit) return hit
+  if (hit) return hit;
 
   // fallback (shouldn't happen)
   return { deg: lookupDeg, name: 'Unknown' }
