@@ -10,6 +10,7 @@ const arms = Array.from(document.querySelectorAll('.arm'))
 const dials = Array.from(document.querySelectorAll('.dial'))
 const symbolsEl = document.getElementById('symbols')
 const symbolRingEl = document.getElementById('symbolRing')
+const answersEl = document.getElementById('answers');
 const concentrateBtn = document.getElementById('concentrate')
 const resetBtn = document.getElementById('reset')
 const spotlightPrimaryEl = document.getElementById('spotlightPrimary')
@@ -51,6 +52,8 @@ const idle = {
   targetVel: -12,
   nextChangeAt: 0,
   lastTime: performance.now(),
+  pausedUntil: 0,
+  stopEase: null, // {startTime, duration, startVelocity}
 }
 
 // ---- Helpers ----
@@ -91,6 +94,18 @@ function degFromPointer(clientX, clientY) {
 
 function applyArm(idx) {
   arms[idx].style.transform = `rotate(${normalizeDeg(state.armDeg[idx])}deg)`
+}
+
+function easeIdleToStop(durationMs = 450, pauseMs = 2000) {
+  const now = performance.now()
+
+  idle.stopEase = {
+    startTime: now,
+    duration: durationMs,
+    startVelocity: idle.velocity,
+  }
+
+  idle.pausedUntil = now + durationMs + pauseMs
 }
 
 function render() {
@@ -210,13 +225,79 @@ function stepIdle(dt) {
 
 function idleLoop(now) {
   const dt = Math.min(0.05, (now - idle.lastTime) / 1000)
-  idle.lastTime = now
+  idle.lastTime = now;
+
+  if (idle.stopEase) {
+    const elapsed = now - idle.stopEase.startTime
+    const t = Math.min(1, elapsed / idle.stopEase.duration)
+
+    // ease-out: fast at first, gentle at the end
+    const eased = 1 - Math.pow(1 - t, 3)
+
+    idle.velocity = idle.stopEase.startVelocity * (1 - eased)
+    state.armDeg[ANSWER_ARM_IDX] = normalizeDeg(
+      state.armDeg[ANSWER_ARM_IDX] + idle.velocity * dt
+    )
+
+    applyArm(ANSWER_ARM_IDX)
+
+    if (t >= 1) {
+      idle.velocity = 0
+      idle.stopEase = null
+    }
+
+    requestAnimationFrame(idleLoop)
+    return
+  }
+
+  if (now < idle.pausedUntil) {
+    requestAnimationFrame(idleLoop)
+    return
+  }
 
   if (now >= idle.nextChangeAt) pickNewIdleTarget(now)
 
   stepIdle(dt)
   applyArm(ANSWER_ARM_IDX) // only update idle arm
   requestAnimationFrame(idleLoop)
+}
+
+function randomInt(min, max) {
+  return Math.floor(Math.random() * (max - min + 1)) + min
+}
+
+function generateAnswerSequence() {
+  let remainingTurns = randomInt(1, 12)
+  const totalTurns = remainingTurns
+  const sequence = []
+
+  while (remainingTurns > 0) {
+    const turns = randomInt(1, Math.min(3, remainingTurns))
+    const symbol = SYMBOL_RING[randomInt(0, SYMBOL_RING.length - 1)]
+
+    sequence.push({
+      symbol,
+      turns,
+    })
+
+    remainingTurns -= turns
+  }
+
+  return {
+    totalTurns,
+    sequence,
+  }
+}
+
+function formatInterpretationDepth(turns) {
+  if (turns === 1) return 'primary'
+  if (turns === 2) return 'secondary'
+  return 'deep'
+}
+
+function formatTurns(turns) {
+  if (turns === 1) return '1 turn'
+  return `${turns} turns`
 }
 
 // ---- Spotlight auto-scale (alpha bbox) ----
@@ -482,9 +563,33 @@ faceEl.addEventListener('wheel', (e) => {
   scheduleWheelSnap(idx)
 }, { passive: false })
 
-// Concentrate (still TODO)
 concentrateBtn.addEventListener('click', () => {
-  // implement later
+  if (!answersEl) return
+  easeIdleToStop(450, 2000);
+
+  const { totalTurns, sequence } = generateAnswerSequence()
+
+  const entry = document.createElement('div')
+  entry.className = 'answer-entry'
+
+  entry.innerHTML = `
+    <div class="answer-summary">
+      <span class="answer-label">Reading:</span>
+      ${totalTurns} total ${totalTurns === 1 ? 'turn' : 'turns'}
+    </div>
+
+    <ol class="answer-symbols">
+      ${sequence.map(({ symbol, turns }) => `
+        <li>
+          <span class="answer-symbol-name">${escapeHtml(symbol.name)}</span>
+          <span class="answer-turns">— ${formatTurns(turns)}</span>
+          <span class="answer-depth">— ${formatInterpretationDepth(turns)}</span>
+        </li>
+      `).join('')}
+    </ol>
+  `
+
+  answersEl.prepend(entry)
 })
 
 resetBtn.addEventListener('click', () => {
