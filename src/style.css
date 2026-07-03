@@ -1,21 +1,35 @@
 /* ---- Base ---- */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
 :root {
   font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
   line-height: 1.4;
+  --panel-width: 320px;
 }
 
-html, body {
+html,
+body {
   margin: 0;
-  min-height: 100vh;
-  background: #050c1a;
-  color: rgba(255, 255, 255, 0.9);
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
 }
 
 /* ---- Layout ---- */
 #app {
   display: grid;
-  grid-template-columns: 320px 1fr;
+  grid-template-columns: var(--panel-width) 1fr;
   min-height: 100vh;
+  width: 100%;
+  height: 100dvh;
+  
+  background: #050c1a;
+  color: rgba(255, 255, 255, 0.9);
+  overflow: hidden;
 }
 
 .panel {
@@ -27,6 +41,9 @@ html, body {
   display: grid;
   place-items: center;
   padding: 24px;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
 }
 
 /* ---- Controls ---- */
@@ -47,7 +64,7 @@ button:hover { background: rgba(0,0,0,0.04); }
 
 /* ---- Face ---- */
 .face {
-  --face-size: min(62vmin, 580px);
+  --face-size: min(85vmin, 700px);
   width: var(--face-size);
   aspect-ratio: 1 / 1;
 
@@ -60,13 +77,15 @@ button:hover { background: rgba(0,0,0,0.04); }
   --img-shift-y: -12px;
 
   /* symbol ring */
-  --symbol-size: 40px;
-  --symbol-inset-from-rim: 50px;
+  --symbol-size: calc(var(--face-size) * 0.069);
+  --symbol-inset-from-rim: calc(var(--face-size) * 0.086);
   --symbol-radius: calc((var(--face-size) / 2) - var(--symbol-inset-from-rim));
   --symbol-rot-offset: 0deg;
 
   /* dials */
-  --dial-size: 45px;
+  --dial-size: clamp(26px, calc(var(--face-size) * 0.064), 45px);
+  --dial-outline-width: clamp(1px, calc(var(--face-size) * 0.004), 3px);
+  --dial-outline-offset: clamp(2px, calc(var(--face-size) * 0.011), 5px);
   --dial-radius: calc(50% + (var(--dial-size) / 2) + 6px);
   --dial-gap-x: 5px;
   --dial-gap-top: -5px;
@@ -111,6 +130,7 @@ button:hover { background: rgba(0,0,0,0.04); }
   height: var(--symbol-size);
   opacity: var(--sym-opacity);
 
+  font-size: var(--symbol-size);
   transform:
     rotate(calc(var(--deg) + var(--symbol-rot-offset)))
     translateY(calc(-1 * var(--symbol-radius)))
@@ -198,8 +218,8 @@ button:hover { background: rgba(0,0,0,0.04); }
 .dial-2 { --dx: -0.866; --dy: 0.5;  --dial-gap: var(--dial-gap-x);  --dial-nudge-y: -17px; }
 
 .dial.selected {
-  outline: 3px solid rgba(255,255,255,0.22);
-  outline-offset: 5px;
+  outline: var(--dial-outline-width) solid rgba(255,255,255,0.22);
+  outline-offset: var(--dial-outline-offset);
 }
 
 /* ---- Symbol readout panel ---- */
@@ -322,4 +342,46 @@ button:hover { background: rgba(0,0,0,0.04); }
   display: inline-block;
   margin: 2px 4px 2px 0;
   white-space: nowrap;
+}
+
+
+
+
+
+@media (max-width: 1150px) and (min-width: 901px) {
+  .face {
+    --face-size: min(
+      calc(100vw - var(--panel-width) - 48px - 24px),
+      calc(100dvh - 48px),
+      700px
+    );
+  }
+}
+
+@media (max-width: 900px) {
+  #app {
+    grid-template-columns: 1fr;
+  }
+
+  .panel {
+    display: none;
+  }
+
+  .stage {
+    padding: 20px 12px 12px;
+    width: 100%;
+    height: 100dvh;
+    min-height: 0;
+    overflow: hidden;
+    place-items: start center;
+  }
+
+  .face {
+    --face-size: min(
+      calc((100vw - 24px) / 1.1),
+      calc((100dvh - 32px) / 1.1),
+      700px
+    );
+    margin-top: calc(var(--face-size) * 0.05);
+  }
 }

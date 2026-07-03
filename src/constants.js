@@ -45,8 +45,8 @@ export const SYMBOL_RING = [
     iconUrl: hourglass,
     appearance: {
       scale: 0.65,
-      nudgeY: -15,
-      nudgeX: 1.3
+      nudgeY: -10,
+      nudgeX: 0.5
     },
     preview: {
       scale: 1.1,
@@ -59,6 +59,10 @@ export const SYMBOL_RING = [
     deg: 10, 
     name: 'Sun', 
     iconUrl: sun,
+    appearance: {
+      scale: 1.2,
+      nudgeY: 8
+    },
     preview: {
       scale: 1.5
     },
@@ -70,9 +74,10 @@ export const SYMBOL_RING = [
     name: 'Alpha & Omega', 
     iconUrl: alphaOmega,
     appearance: {
-      scale: 0.8,
-      nudgeY: -3,
-      nudgeX: 3,
+      scale: 0.85,
+      nudgeY: 5,
+      rotate: 3,
+      nudgeX: 1
     },
     preview: {
       scale: 1.2
@@ -86,7 +91,7 @@ export const SYMBOL_RING = [
     iconUrl: marionette,
     appearance: {
       scale: 0.60,
-      nudgeY: -20
+      nudgeY: -15
     },
     preview: {
       scale: 1,
@@ -101,7 +106,7 @@ export const SYMBOL_RING = [
     iconUrl: serpent,
     appearance: {
       scale: 0.6,
-      nudgeY: -20
+      nudgeY: -15
     },
     preview: {
       scale: 0.9,
@@ -115,8 +120,8 @@ export const SYMBOL_RING = [
     name: 'Cauldron', 
     iconUrl: cauldron,
     appearance: {
-      scale: 0.9,
-      nudgeY: -9
+      scale: 0.85,
+      nudgeY: -6
     },
     preview: {
       scale: 1.2,
@@ -131,7 +136,8 @@ export const SYMBOL_RING = [
     iconUrl: anchor, 
     appearance: {
       scale: 1.2,
-      rotate: 63
+      rotate: 63,
+      nudgeY: 10
     },
     preview: {
       rotate: 70,
@@ -148,7 +154,7 @@ export const SYMBOL_RING = [
     iconUrl: angel,
     appearance: {
       scale: 0.7,
-      nudgeY: -16
+      nudgeY: -9
     },
     preview: {
       scale: 1.1,
@@ -164,7 +170,6 @@ export const SYMBOL_RING = [
     appearance: {
       scale: 0.9,
       nudgeX: 2,
-      nudgeY: -6
     },
     preview: {
       nudgeX: 15,
@@ -179,7 +184,7 @@ export const SYMBOL_RING = [
     iconUrl: beehive,
     appearance: {
       scale: 0.8,
-      nudgeY: -10
+      // nudgeY: -4
     },
     preview: {
       scale: 1.2,
@@ -192,7 +197,7 @@ export const SYMBOL_RING = [
     name: 'Moon', 
     iconUrl: moon,
     appearance: {
-      scale: 0.8
+      nudgeY: 5
     },
     primaryMeaning: 'Night', 
     secondaryMeanings: ['change','reflection','dreams','phases','subconscious','magic','intuition','cold','pull','mystery','secrecy','the uncanny','illusion','cyclical','femininity','silence','return','silver','distance']
@@ -202,8 +207,8 @@ export const SYMBOL_RING = [
     name: 'Madonna', 
     iconUrl: madonna,
     appearance: {
-      scale: 0.65,
-      nudgeY: -15
+      scale: 0.75,
+      nudgeY: -4
     },
     preview: {
       scale: 1.25,
@@ -217,8 +222,10 @@ export const SYMBOL_RING = [
     name: 'Apple', 
     iconUrl: apple, 
     appearance: {
-      rotate: -30,
-      nudgeX: 3
+      scale: 1.3,
+      rotate: -25,
+      nudgeX: 3,
+      nudgeY: 6
     },
     preview: {
       scale: 1.3,
@@ -233,9 +240,9 @@ export const SYMBOL_RING = [
     name: 'Bird', 
     iconUrl: bird,
     appearance: {
-      scale: 0.7,
-      rotate: 60,
-      nudgeY: -12
+      scale: 0.75,
+      rotate: 55,
+      nudgeY: -8
     },
     preview: {
       rotate: 49,
@@ -250,8 +257,9 @@ export const SYMBOL_RING = [
     name: 'Bread', 
     iconUrl: bread,
     appearance: {
-      rotate: -40,
-      nudgeY: 3
+      rotate: -20,
+      scale: 1.2,
+      nudgeY: 4
     },
     preview: {
       scale: 1.4,
@@ -265,9 +273,9 @@ export const SYMBOL_RING = [
     name: 'Ant', 
     iconUrl: ant,
     appearance: {
-      scale: 1.1,
+      scale: 1.2,
       rotate: -135,
-      nudgeY: 8
+      nudgeY: 14
     },
     preview: {
       scale: 1.2,
@@ -282,7 +290,8 @@ export const SYMBOL_RING = [
     name: 'Bull', 
     iconUrl: bull,
     appearance: {
-      nudgeY: 7
+      scale: 1.1,
+      nudgeY: 10
     },
     preview: {
       scale: 1.3,
@@ -296,7 +305,7 @@ export const SYMBOL_RING = [
     name: 'Candle', 
     iconUrl: candle,
     appearance: {
-      scale: 0.6,
+      scale: 0.65,
       nudgeY: -10
     },
     preview: {
@@ -310,7 +319,8 @@ export const SYMBOL_RING = [
     name: 'Cornucopia', 
     iconUrl: cornucopia,
     appearance: {
-      nudgeY: 7
+      scale: 1.1,
+      nudgeY: 8
     },
     preview: {
       scale: 1.2,
@@ -323,7 +333,8 @@ export const SYMBOL_RING = [
     name: 'Chameleon', 
     iconUrl: chameleon,
     appearance: {
-      nudgeX: 3,
+      nudgeX: 2,
+      scale: 1.2,
       nudgeY: 7
     },
     preview: {
@@ -352,8 +363,9 @@ export const SYMBOL_RING = [
     name: 'Dolphin', 
     iconUrl: dolphin,
     appearance: {
-      scale: 0.76,
-      nudgeX: -3
+      scale: 0.9,
+      nudgeY: 3,
+      rotate: 20
     },
     preview: {
       scale: 1.3,
@@ -367,10 +379,11 @@ export const SYMBOL_RING = [
     name: 'Walled Garden', 
     iconUrl: garden,
     appearance: {
-      nudgeY: 3
+      nudgeY: 8,
+      scale: 1.1
     },
     preview: {
-      scale: 1.2,
+      scale: 1.5,
       nudgeY: -18
     },
     primaryMeaning: 'Control', 
@@ -381,8 +394,8 @@ export const SYMBOL_RING = [
     name: 'Globe', 
     iconUrl: globe,
     appearance: {
-      scale: 0.7,
-      nudgeY: -4
+      scale: 0.75,
+      nudgeY: -2
     },
     preview: {
       scale: 1.2,
@@ -392,18 +405,18 @@ export const SYMBOL_RING = [
     secondaryMeanings: ['politics','culture','travel','diplomacy','large scale','navigation','exploration','nations','trade','economy','law','sovereignty','fame','perspective','overview','influence','borders','interconnectedness'] 
   },
   { 
-    deg: 240, 
+    deg: 240,
     name: 'Sword', 
     iconUrl: sword,
     appearance: {
       scale: 0.4,
       nudgeY: -35,
-      rotate: 200
+      rotate: -30
     },
     preview: {
       scale: 0.58,
       nudgeY: -160,
-      rotate: 200
+      rotate: -30
     },
     primaryMeaning: 'Action', 
     secondaryMeanings: ['fight','severance','justice','action','decisiveness','conflict','violence','conquest','duel','cutting through','domination','attack','danger','sacrifice','war']
@@ -413,8 +426,7 @@ export const SYMBOL_RING = [
     name: 'Griffin', 
     iconUrl: griffin,
     appearance: {
-      scale: 0.9,
-      nudgeY: 3
+      nudgeY: 9
     },
     preview: {
       scale: 1.2
@@ -427,7 +439,7 @@ export const SYMBOL_RING = [
     name: 'Horse', 
     iconUrl: horse,
     appearance: {
-      nudgeY: 3
+      nudgeY: 7
     },
     preview: {
       scale: 1.3
@@ -440,8 +452,8 @@ export const SYMBOL_RING = [
     name: 'Camel', 
     iconUrl: camel,
     appearance: {
-      scale: 0.7,
-      nudgeY: -5
+      scale: 0.75,
+      nudgeY: -2
     },
     preview: {
       scale: 1.1,
@@ -455,7 +467,9 @@ export const SYMBOL_RING = [
     name: 'Elephant', 
     iconUrl: elephant,
     appearance: {
-      nudgeY: 6
+      nudgeY: 10,
+      nudgeX: 1,
+      scale: 1.1,
     },
     preview: {
       scale: 1.3,
@@ -469,6 +483,8 @@ export const SYMBOL_RING = [
     name: 'Crocodile', 
     iconUrl: crocodile,
     appearance: {
+      nudgeY: 12,
+      scale: 1.2,
       nudgeX: 5
     },
     preview: {
@@ -482,8 +498,9 @@ export const SYMBOL_RING = [
     name: 'Baby',
     iconUrl: baby,
     appearance: {
-      scale: 0.9,
-      nudgeX: 4
+      scale: 1.2,
+      nudgeY: 12,
+      nudgeX: 5
     },
     preview: {
       scale: 1.3
@@ -496,8 +513,8 @@ export const SYMBOL_RING = [
     name: 'Compass',
     iconUrl: compass,
     appearance:{
-      scale: 0.3,
-      nudgeY: -52,
+      scale: 0.35,
+      nudgeY: -45,
       nudgeX: 1
     },
     preview: {
@@ -512,8 +529,8 @@ export const SYMBOL_RING = [
     name: 'Lute', 
     iconUrl: lute,
     appearance: {
-      scale: 0.45,
-      nudgeY: -31,
+      scale: 0.55,
+      nudgeY: -22,
       nudgeX: 3,
       rotate: 20
     },
@@ -530,8 +547,8 @@ export const SYMBOL_RING = [
     name: 'Tree', 
     iconUrl: tree,
     appearance: {
-      scale: 0.7,
-      nudgeY: -10
+      scale: 0.8,
+      nudgeY: -2
     },
     preview: {
       scale: 1.2,
@@ -545,8 +562,9 @@ export const SYMBOL_RING = [
     name: 'Father',
     iconUrl: father,
     appearance: {
-      scale: 0.5,
-      nudgeY: -25
+      scale: 0.56,
+      nudgeX: 1,
+      nudgeY: -18
     },
     preview: {
       scale: 0.85,
@@ -561,7 +579,7 @@ export const SYMBOL_RING = [
     iconUrl: owl,
     appearance: {
       scale: 0.55,
-      nudgeY: -20
+      nudgeY: -14
     },
     preview: {
       scale: 0.9,

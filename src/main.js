@@ -171,9 +171,17 @@ function buildSymbols() {
     const a = s.appearance || {}
     if (a.scale != null) el.style.setProperty('--sym-scale', String(a.scale))
     if (a.rotate != null) el.style.setProperty('--sym-rot', `${a.rotate}deg`)
-    if (a.nudgeX != null) el.style.setProperty('--sym-nudge-x', `${a.nudgeX}px`)
-    if (a.nudgeY != null) el.style.setProperty('--sym-nudge-y', `${a.nudgeY}px`)
     if (a.opacity != null) el.style.setProperty('--sym-opacity', String(a.opacity))
+
+    const BASE_SYMBOL_SIZE = 40
+
+    if (a.nudgeX != null) {
+      el.style.setProperty('--sym-nudge-x', `${a.nudgeX / BASE_SYMBOL_SIZE}em`)
+    }
+
+    if (a.nudgeY != null) {
+      el.style.setProperty('--sym-nudge-y', `${a.nudgeY / BASE_SYMBOL_SIZE}em`)
+    }
 
     const img = document.createElement('img')
     img.src = s.iconUrl
