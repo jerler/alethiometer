@@ -74,7 +74,7 @@ button:hover { background: rgba(0,0,0,0.04); }
 
   /* face image calibration */
   --img-shift-x: 0px;
-  --img-shift-y: -12px;
+  --img-shift-y: clamp(-12px, calc(var(--face-size) * -0.014), -4px);
 
   /* symbol ring */
   --symbol-size: calc(var(--face-size) * 0.069);
