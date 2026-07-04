@@ -10,11 +10,16 @@ const arms = Array.from(document.querySelectorAll('.arm'))
 const dials = Array.from(document.querySelectorAll('.dial'))
 const symbolsEl = document.getElementById('symbols')
 const symbolRingEl = document.getElementById('symbolRing')
-const answersEl = document.getElementById('answers');
 const concentrateBtn = document.getElementById('concentrate')
 const resetBtn = document.getElementById('reset')
 const spotlightPrimaryEl = document.getElementById('spotlightPrimary')
 const spotlightSecondaryEl = document.getElementById('spotlightSecondary')
+
+// Answer panel
+const panelNormalEl = document.getElementById('panelNormal')
+const panelReadingEl = document.getElementById('panelReading')
+const backToControlsBtn = document.getElementById('backToControls')
+const answersEl = document.getElementById('answers')
 
 // Spotlight elements (panel)
 const spotlightImgEl = document.getElementById('spotlightImg')
@@ -54,12 +59,23 @@ const idle = {
   lastTime: performance.now(),
   pausedUntil: 0,
   stopEase: null, // {startTime, duration, startVelocity}
+  isReading: false,
 }
 
 // ---- Helpers ----
 function normalizeDeg(d) {
   d %= 360
   return d < 0 ? d + 360 : d
+}
+
+function showNormalPanel() {
+  panelNormalEl.hidden = false
+  panelReadingEl.hidden = true
+}
+
+function showReadingPanel() {
+  panelNormalEl.hidden = true
+  panelReadingEl.hidden = false
 }
 
 function shortestDiffDeg(from, to) {
@@ -108,6 +124,67 @@ function easeIdleToStop(durationMs = 450, pauseMs = 2000) {
   idle.pausedUntil = now + durationMs + pauseMs
 }
 
+const READING_TIMING = {
+  swingToSymbolMs: 700,
+  pauseOnFirstLandMs: 100,
+  msPerFullTurn: 1500,
+  pauseBetweenTurnsMs: 100,
+  pauseAfterFinalTurnMs: 500,
+  pauseBetweenSymbolsMinMs: 75,
+  pauseBetweenSymbolsMaxMs: 250,
+  finalPauseMs: 1000,
+}
+
+function wait(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms))
+}
+
+function randomMs(min, max) {
+  return randomInt(min, max)
+}
+
+// SYMBOL_RING degrees are north-based.
+// Your arm degrees are east-based, where symbolForArmDeg() converts east -> north by adding 90.
+// So to point at a north-based symbol, subtract 90.
+function armDegForSymbol(symbol) {
+  return normalizeDeg(symbol.deg - 90)
+}
+
+function easeInOutCubic(t) {
+  return t < 0.5
+    ? 4 * t * t * t
+    : 1 - Math.pow(-2 * t + 2, 3) / 2
+}
+
+function setAnswerArmRawDeg(deg) {
+  state.armDeg[ANSWER_ARM_IDX] = deg
+  arms[ANSWER_ARM_IDX].style.transform = `rotate(${deg}deg)`
+}
+
+function animateAnswerArmToRaw(targetDeg, durationMs) {
+  return new Promise(resolve => {
+    const startTime = performance.now()
+    const startDeg = state.armDeg[ANSWER_ARM_IDX]
+    const diff = targetDeg - startDeg
+
+    function frame(now) {
+      const t = Math.min(1, (now - startTime) / durationMs)
+      const eased = easeInOutCubic(t)
+
+      setAnswerArmRawDeg(startDeg + diff * eased)
+
+      if (t < 1) {
+        requestAnimationFrame(frame)
+      } else {
+        setAnswerArmRawDeg(targetDeg)
+        resolve()
+      }
+    }
+
+    requestAnimationFrame(frame)
+  })
+}
+
 function render() {
   // normalize in place, then apply transforms
   for (let i = 0; i < state.armDeg.length; i++) state.armDeg[i] = normalizeDeg(state.armDeg[i])
@@ -148,6 +225,22 @@ function animateArmTo(idx, targetDeg, ms = 160) {
 function snapArm(idx) {
   if (state.drag) return
   animateArmTo(idx, snapToSymbol(state.armDeg[idx]))
+}
+
+function randomDirection() {
+  return Math.random() < 0.5 ? -1 : 1
+}
+
+// direction: 1 = clockwise, -1 = counter-clockwise
+function directedDiffToSymbol(fromDeg, symbolDeg, direction) {
+  const from = normalizeDeg(fromDeg)
+  const to = normalizeDeg(symbolDeg)
+
+  if (direction === 1) {
+    return (to - from + 360) % 360
+  }
+
+  return -((from - to + 360) % 360)
 }
 
 function scheduleWheelSnap(idx, delayMs = 120) {
@@ -224,6 +317,12 @@ function stepIdle(dt) {
 }
 
 function idleLoop(now) {
+  if (idle.isReading) {
+    idle.lastTime = now
+    requestAnimationFrame(idleLoop)
+    return
+  }
+
   const dt = Math.min(0.05, (now - idle.lastTime) / 1000)
   idle.lastTime = now;
 
@@ -298,6 +397,72 @@ function formatInterpretationDepth(turns) {
 function formatTurns(turns) {
   if (turns === 1) return '1 turn'
   return `${turns} turns`
+}
+
+async function playAnswerSequence(sequence) {
+  idle.isReading = true
+  idle.stopEase = null
+  idle.velocity = 0
+
+  let currentRawDeg = state.armDeg[ANSWER_ARM_IDX]
+
+  for (let symbolIndex = 0; symbolIndex < sequence.length; symbolIndex++) {
+    const { symbol, turns } = sequence[symbolIndex];
+    const symbolDeg = armDegForSymbol(symbol)
+
+    // Pick a fresh direction for moving between symbols.
+    // 1 = clockwise, -1 = counter-clockwise
+    const direction = randomDirection()
+
+    // Move to the target symbol using the chosen direction.
+    const firstLandingDeg =
+      currentRawDeg + directedDiffToSymbol(currentRawDeg, symbolDeg, direction)
+
+    await animateAnswerArmToRaw(firstLandingDeg, READING_TIMING.swingToSymbolMs)
+
+    await wait(
+      turns > 0
+        ? READING_TIMING.pauseOnFirstLandMs
+        : READING_TIMING.pauseAfterFinalTurnMs
+    )
+
+    currentRawDeg = firstLandingDeg
+
+    // Repeated turns on this same symbol keep the same direction.
+    for (let i = 0; i < turns; i++) {
+      const nextLandingDeg = currentRawDeg + direction * 360
+      const isLastTurnForThisSymbol = i === turns - 1
+
+      await animateAnswerArmToRaw(
+        nextLandingDeg,
+        READING_TIMING.msPerFullTurn
+      )
+
+      currentRawDeg = nextLandingDeg
+
+      await wait(
+        isLastTurnForThisSymbol
+          ? READING_TIMING.pauseAfterFinalTurnMs
+          : READING_TIMING.pauseBetweenTurnsMs
+      )
+    }
+    if (symbolIndex < sequence.length - 1) {
+      await wait(randomMs(
+        READING_TIMING.pauseBetweenSymbolsMinMs,
+        READING_TIMING.pauseBetweenSymbolsMaxMs
+      ))
+    }
+  }
+
+  state.armDeg[ANSWER_ARM_IDX] = normalizeDeg(state.armDeg[ANSWER_ARM_IDX])
+  applyArm(ANSWER_ARM_IDX)
+
+  await wait(READING_TIMING.finalPauseMs)
+
+  idle.lastTime = performance.now()
+  idle.velocity = 0
+  pickNewIdleTarget(performance.now())
+  idle.isReading = false
 }
 
 // ---- Spotlight auto-scale (alpha bbox) ----
@@ -563,33 +728,68 @@ faceEl.addEventListener('wheel', (e) => {
   scheduleWheelSnap(idx)
 }, { passive: false })
 
-concentrateBtn.addEventListener('click', () => {
+concentrateBtn.addEventListener('click', async () => {
   if (!answersEl) return
-  easeIdleToStop(450, 2000);
+  if (idle.isReading) return
 
   const { totalTurns, sequence } = generateAnswerSequence()
 
   const entry = document.createElement('div')
-  entry.className = 'answer-entry'
+  entry.className = 'reading-entry'
 
   entry.innerHTML = `
-    <div class="answer-summary">
-      <span class="answer-label">Reading:</span>
+    <div class="reading-summary">
+      <span class="reading-label">Reading:</span>
       ${totalTurns} total ${totalTurns === 1 ? 'turn' : 'turns'}
     </div>
 
-    <ol class="answer-symbols">
-      ${sequence.map(({ symbol, turns }) => `
-        <li>
-          <span class="answer-symbol-name">${escapeHtml(symbol.name)}</span>
-          <span class="answer-turns">— ${formatTurns(turns)}</span>
-          <span class="answer-depth">— ${formatInterpretationDepth(turns)}</span>
-        </li>
-      `).join('')}
-    </ol>
+    <div class="reading-card-list">
+      ${sequence.map(({ symbol, turns }) => {
+        const p = symbol.preview || {}
+
+        const scale = p.scale ?? 1
+        const rotate = p.rotate ?? 0
+        const nudgeX = p.nudgeX ?? 0
+        const nudgeY = p.nudgeY ?? 0
+        const fit = p.fit ?? 'contain'
+
+        return `
+          <div class="reading-card">
+            <div
+              class="reading-card-image-wrap"
+              style="
+                --card-scale: ${scale};
+                --card-rot: ${rotate}deg;
+                --card-nudge-x: ${nudgeX}px;
+                --card-nudge-y: ${nudgeY}px;
+                --card-fit: ${fit};
+              "
+            >
+              <img
+                class="reading-card-image"
+                src="${symbol.iconUrl}"
+                alt="${escapeHtml(symbol.name)}"
+              />
+            </div>
+
+            <div class="reading-card-name">
+              ${escapeHtml(symbol.name)}
+            </div>
+
+            <div class="reading-card-depth">
+              ${formatInterpretationDepth(turns)}
+            </div>
+          </div>
+        `
+      }).join('')}
+    </div>
   `
 
-  answersEl.prepend(entry)
+  answersEl.innerHTML = ''
+  answersEl.appendChild(entry)
+  showReadingPanel()
+
+  await playAnswerSequence(sequence)
 })
 
 resetBtn.addEventListener('click', () => {
@@ -597,6 +797,10 @@ resetBtn.addEventListener('click', () => {
   animateArmTo(0, 270, 220)
   animateArmTo(1, 30, 220)
   animateArmTo(2, 150, 220)
+})
+
+backToControlsBtn.addEventListener('click', () => {
+  showNormalPanel()
 })
 
 // ---- init ----

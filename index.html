@@ -4,6 +4,7 @@
 <body>
   <div id="app">
     <div class="panel">
+    <div id="panelNormal" class="panel-view panel-normal">
       <h1>Alethiometer</h1>
       <p>Click an arm or dial to select it. Drag or scroll to rotate.</p>
 
@@ -29,6 +30,20 @@
       </div>
     </div>
 
+    <div id="panelReading" class="panel-view panel-reading" hidden>
+      <div class="reading-header">
+        <div>
+          <div class="reading-kicker">Alethiometer</div>
+          <h2>Reading</h2>
+        </div>
+
+        <button id="backToControls" type="button">Back</button>
+      </div>
+
+      <div id="answers" class="reading-symbols"></div>
+    </div>
+  </div>
+
     <div class="stage">
       <div id="face" class="face" aria-label="Alethiometer face">
         <div class="symbol-ring" id="symbolRing"></div>
@@ -41,10 +56,6 @@
         <div class="arm arm-1" data-arm="1"><img class="arm-svg" alt="" /></div>
         <div class="arm arm-2" data-arm="2"><img class="arm-svg" alt="" /></div>
         <div class="arm arm-3" data-arm="3"><img class="arm-svg" alt="" /></div>
-      </div>
-      <div class="answer-box" aria-label="Alethiometer answers">
-        <div class="answer-box-label">Answers</div>
-        <div id="answers" class="answers"></div>
       </div>
     </div>
   </div>

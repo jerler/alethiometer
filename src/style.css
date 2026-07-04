@@ -39,47 +39,71 @@ body {
   display: grid;
   grid-template-rows: auto auto;
   justify-items: center;
-  align-content: start;
+  align-content: center;
   gap: 16px;
-  /* place-items: center; */
   padding: 24px;
   min-width: 0;
   min-height: 0;
   overflow: hidden;
 }
+.panel-view[hidden] {
+  display: none;
+}
 
-.answer-box {
-  width: min(var(--face-size, 700px), 100%);
-  max-height: 120px;
+.panel-reading {
+  display: grid;
+  gap: 12px;
+}
+
+.reading-header {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.reading-header h2 {
+  margin: 0;
+  font-size: 22px;
+  line-height: 1.1;
+}
+
+.reading-kicker {
+  font-size: 12px;
+  opacity: 0.7;
+  margin-bottom: 4px;
+}
+
+.reading-symbols {
+  display: grid;
+  gap: 10px;
+}
+
+.reading-entry {
   padding: 12px;
   border-radius: 16px;
   background: rgba(255,255,255,0.06);
   border: 1px solid rgba(255,255,255,0.08);
-  overflow: hidden;
 }
 
-.answer-box-label {
-  font-size: 12px;
-  opacity: 0.75;
-  margin-bottom: 6px;
-}
-
-.answers {
+.reading-summary {
   font-size: 14px;
-  line-height: 1.35;
-  max-height: 84px;
-  overflow-y: auto;
+  margin-bottom: 8px;
 }
 
-.answer-entry {
-  padding: 4px 0;
-  border-bottom: 1px solid rgba(255,255,255,0.08);
+.reading-label,
+.reading-symbol-name {
+  font-weight: 700;
 }
 
-.answer-entry:last-child {
-  border-bottom: 0;
+.reading-turns,
+.reading-depth {
+  opacity: 0.82;
 }
 
+.reading-depth {
+  font-style: italic;
+}
 /* ---- Controls ---- */
 .buttons {
   display: flex;
@@ -376,7 +400,85 @@ button:hover { background: rgba(0,0,0,0.04); }
   white-space: nowrap;
 }
 
+.reading-card-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
 
+.reading-card {
+  min-width: 0;
+  padding: 10px;
+  border-radius: 16px;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.08);
+
+  display: grid;
+  justify-items: center;
+  gap: 6px;
+}
+
+.reading-card-image-wrap {
+  --card-scale: 1;
+  --card-rot: 0deg;
+  --card-nudge-x: 0px;
+  --card-nudge-y: 0px;
+  --card-fit: contain;
+
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  border-radius: 14px;
+  background: rgba(0,0,0,0.22);
+
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+}
+
+.reading-card-image {
+  width: 72%;
+  height: 72%;
+  object-fit: var(--card-fit);
+
+  transform:
+    translate(var(--card-nudge-x), var(--card-nudge-y))
+    rotate(var(--card-rot))
+    scale(var(--card-scale));
+
+  transform-origin: 50% 50%;
+}
+
+.reading-card-name {
+  max-width: 100%;
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.15;
+  text-align: center;
+}
+
+.reading-card-depth {
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+
+  background: rgba(255,255,255,0.10);
+  color: rgba(255,255,255,0.82);
+}
+
+.panel {
+  overflow-y: auto;
+}
+
+.panel-reading {
+  min-height: 0;
+}
+
+.reading-symbols {
+  min-height: 0;
+}
 
 
 
@@ -409,7 +511,7 @@ button:hover { background: rgba(0,0,0,0.04); }
   .face {
     --face-size: min(
       calc((100vw - 24px) / 1.1),
-      calc((100dvh - 170px) / 1.1),
+      calc((100dvh - 32px) / 1.1),
       700px
     );
     margin-top: calc(var(--face-size) * 0.05);
