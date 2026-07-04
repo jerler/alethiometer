@@ -1,48 +1,77 @@
 <head>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
 </head>
 <body>
   <div id="app">
     <div class="panel">
-    <div id="panelNormal" class="panel-view panel-normal">
-      <h1>Alethiometer</h1>
-      <p>Click an arm or dial to select it. Drag or scroll to rotate.</p>
+      <div class="panel-tabs" role="tablist" aria-label="Alethiometer panel">
+        <button
+          id="controlsTab"
+          class="panel-tab active"
+          type="button"
+          role="tab"
+          aria-selected="true"
+          aria-controls="panelNormal"
+        >
+          Controls
+        </button>
 
-      <div class="symbols" id="symbols"></div>
+        <button
+          id="readingTab"
+          class="panel-tab"
+          type="button"
+          role="tab"
+          aria-selected="false"
+          aria-controls="panelReading"
+        >
+          Reading
+        </button>
+      </div>
+      <div id="panelNormal" class="panel-view panel-normal">
+        <h1 style="margin: 0">Alethiometer</h1>
+        <p>Click an arm or dial to select it. Drag or scroll to rotate.</p>
 
-      <div class="spotlight" aria-label="Selected symbol">
-        <div class="spotlight-media" role="img" aria-label="Selected symbol preview">
-          <img id="spotlightImg" alt="" />
+        <div class="symbols" id="symbols"></div>
+
+        <div class="spotlight" aria-label="Selected symbol">
+          <div
+            class="spotlight-media"
+            role="img"
+            aria-label="Selected symbol preview"
+          >
+            <img id="spotlightImg" alt="" />
+          </div>
+
+          <div class="spotlight-meta">
+            <div class="spotlight-label">Selected</div>
+            <div id="spotlightName" class="spotlight-name">—</div>
+            <div class="spotlight-label meanings-label">Meanings</div>
+            <div id="spotlightPrimary" class="spotlight-primary">—</div>
+            <ul
+              id="spotlightSecondary"
+              class="spotlight-secondary"
+              aria-label="Secondary meanings"
+            ></ul>
+          </div>
         </div>
 
-        <div class="spotlight-meta">
-          <div class="spotlight-label">Selected</div>
-          <div id="spotlightName" class="spotlight-name">—</div>
-          <div class="spotlight-label meanings-label">Meanings</div>
-          <div id="spotlightPrimary" class="spotlight-primary">—</div>
-          <ul id="spotlightSecondary" class="spotlight-secondary" aria-label="Secondary meanings"></ul>
+        <div class="buttons">
+          <button id="concentrate">Concentrate</button>
+          <button id="reset">Reset</button>
         </div>
       </div>
 
-      <div class="buttons">
-        <button id="concentrate">Concentrate</button>
-        <button id="reset">Reset</button>
+      <div id="panelReading" class="panel-view panel-reading" hidden>
+        <div class="reading-header">
+          <div>
+            <div class="reading-kicker">Alethiometer</div>
+            <h2>Reading</h2>
+          </div>
+        </div>
+
+        <div id="answers" class="reading-symbols"></div>
       </div>
     </div>
-
-    <div id="panelReading" class="panel-view panel-reading" hidden>
-      <div class="reading-header">
-        <div>
-          <div class="reading-kicker">Alethiometer</div>
-          <h2>Reading</h2>
-        </div>
-
-        <button id="backToControls" type="button">Back</button>
-      </div>
-
-      <div id="answers" class="reading-symbols"></div>
-    </div>
-  </div>
 
     <div class="stage">
       <div id="face" class="face" aria-label="Alethiometer face">

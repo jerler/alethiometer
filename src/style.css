@@ -444,8 +444,8 @@ button:hover { background: rgba(0,0,0,0.04); }
 .reading-card-image-wrap {
   --card-scale: 1;
   --card-rot: 0deg;
-  --card-nudge-x: 0px;
-  --card-nudge-y: 0px;
+  --card-nudge-x: 0%;
+  --card-nudge-y: 0%;
   --card-fit: contain;
 
   width: 90%;
@@ -492,9 +492,18 @@ button:hover { background: rgba(0,0,0,0.04); }
   font-weight: 800;
   letter-spacing: 0.04em;
   text-transform: uppercase;
+  transition:
+    background 180ms ease,
+    color 180ms ease,
+    transform 180ms ease;
 
   background: rgba(255,255,255,0.12);
   color: rgba(255,255,255,0.86);
+}
+
+.reading-card-depth[data-depth="secondary"],
+.reading-card-depth[data-depth="deep"] {
+  transform: scale(1.03);
 }
 
 .reading-card-depth[data-depth="primary"] {
@@ -509,6 +518,28 @@ button:hover { background: rgba(0,0,0,0.04); }
 
 .panel {
   overflow-y: auto;
+  padding-bottom: 0;
+
+  scrollbar-width: thin; /* Firefox */
+  scrollbar-color: rgba(255,255,255,0.22) rgba(255,255,255,0.04);
+}
+
+/* Chrome / Edge / Safari */
+.panel::-webkit-scrollbar {
+  width: 8px;
+}
+
+.panel::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.panel::-webkit-scrollbar-thumb {
+  background: rgba(255,255,255,0.16);
+  border-radius: 999px;
+}
+
+.panel::-webkit-scrollbar-thumb:hover {
+  background: rgba(255,255,255,0.28);
 }
 
 .panel-reading {
@@ -519,6 +550,52 @@ button:hover { background: rgba(0,0,0,0.04); }
   min-height: 0;
 }
 
+.panel-tabs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  margin-bottom: 12px;
+  padding: 4px;
+  border-radius: 14px;
+  background: rgba(255,255,255,0.06);
+}
+
+.panel-tab {
+  padding: 8px 10px;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  color: rgba(255,255,255,0.72);
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.panel-tab:hover {
+  background: rgba(255,255,255,0.06);
+  color: rgba(255,255,255,0.9);
+}
+
+.panel-tab.active {
+  background: rgba(255,255,255,0.16);
+  color: rgba(255,255,255,0.96);
+}
+
+.panel-tab:focus {
+  outline: 2px solid rgba(255,255,255,0.35);
+  outline-offset: 2px;
+}
+
+.panel-tab.has-reading:not(.active)::after {
+  content: "";
+  display: inline-block;
+  width: 0.45em;
+  height: 0.45em;
+  margin-left: 0.45em;
+  border-radius: 50%;
+  background: rgba(255, 190, 120, 0.9);
+  vertical-align: middle;
+}
 
 
 @media (max-width: 1150px) and (min-width: 901px) {

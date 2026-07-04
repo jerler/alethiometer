@@ -18,8 +18,9 @@ const spotlightSecondaryEl = document.getElementById('spotlightSecondary')
 // Answer panel
 const panelNormalEl = document.getElementById('panelNormal')
 const panelReadingEl = document.getElementById('panelReading')
-const backToControlsBtn = document.getElementById('backToControls')
 const answersEl = document.getElementById('answers')
+const controlsTabBtn = document.getElementById('controlsTab')
+const readingTabBtn = document.getElementById('readingTab')
 
 // Spotlight elements (panel)
 const spotlightImgEl = document.getElementById('spotlightImg')
@@ -79,13 +80,24 @@ function armDegForNorthDeg(northDeg) {
 }
 
 function showNormalPanel() {
-  panelNormalEl.hidden = false
-  panelReadingEl.hidden = true
+  showPanelTab('controls')
 }
 
 function showReadingPanel() {
-  panelNormalEl.hidden = true
-  panelReadingEl.hidden = false
+  showPanelTab('reading')
+}
+
+function showPanelTab(tabName) {
+  const showControls = tabName === 'controls'
+
+  panelNormalEl.hidden = !showControls
+  panelReadingEl.hidden = showControls
+
+  controlsTabBtn.classList.toggle('active', showControls)
+  readingTabBtn.classList.toggle('active', !showControls)
+
+  controlsTabBtn.setAttribute('aria-selected', String(showControls))
+  readingTabBtn.setAttribute('aria-selected', String(!showControls))
 }
 
 function shortestDiffDeg(from, to) {
@@ -132,6 +144,51 @@ function easeIdleToStop(durationMs = 450, pauseMs = 2000) {
   }
 
   idle.pausedUntil = now + durationMs + pauseMs
+}
+
+function readingCardHtml({ symbol, symbolIndex }) {
+  const p = symbol.preview || {}
+
+  const scale = p.scale ?? 1
+  const rotate = p.rotate ?? 0
+  const nudgeX = p.nudgeX ?? 0
+  const nudgeY = p.nudgeY ?? 0
+  const fit = p.fit ?? 'contain'
+  const depth = formatInterpretationDepth(1)
+
+  return `
+    <div class="reading-card" data-reading-card="${symbolIndex}">
+      <div
+        class="reading-card-image-wrap"
+        style="
+          --card-scale: ${scale};
+          --card-rot: ${rotate}deg;
+          --card-nudge-x: ${nudgeX}%;
+          --card-nudge-y: ${nudgeY}%;
+          --card-fit: ${fit};
+        "
+      >
+        <img
+          class="reading-card-image"
+          src="${symbol.iconUrl}"
+          alt="${escapeHtml(symbol.name)}"
+        />
+      </div>
+
+      <div class="reading-card-text">
+        <div class="reading-card-name">
+          ${escapeHtml(symbol.name)}
+        </div>
+
+        <div
+          class="reading-card-depth"
+          data-depth="${depth}"
+        >
+          ${depth}
+        </div>
+      </div>
+    </div>
+  `
 }
 
 const READING_TIMING = {
@@ -254,6 +311,19 @@ function updateArmSelectors() {
     const symbol = symbolForArmDeg(state.armDeg[i])
     select.value = String(symbol.deg)
   })
+}
+
+function updateReadingCardDepth(symbolIndex, level, rootEl = document) {
+  const cardEl = rootEl.querySelector(`[data-reading-card="${symbolIndex}"]`)
+  if (!cardEl) return
+
+  const depthEl = cardEl.querySelector('.reading-card-depth')
+  if (!depthEl) return
+
+  const depth = formatInterpretationDepth(level)
+
+  depthEl.textContent = depth
+  depthEl.dataset.depth = depth
 }
 
 function render() {
@@ -448,9 +518,9 @@ function generateAnswerSequence() {
   }
 }
 
-function formatInterpretationDepth(turns) {
-  if (turns === 1) return 'primary'
-  if (turns === 2) return 'secondary'
+function formatInterpretationDepth(level) {
+  if (level <= 1) return 'primary'
+  if (level === 2) return 'secondary'
   return 'deep'
 }
 
@@ -459,7 +529,10 @@ function formatTurns(turns) {
   return `${turns} turns`
 }
 
-async function playAnswerSequence(sequence) {
+async function playAnswerSequence(sequence, {
+  onFirstLanding = () => {},
+  onDepthChange = () => {},
+} = {}) {
   idle.isReading = true
   idle.stopEase = null
   idle.velocity = 0
@@ -480,6 +553,8 @@ async function playAnswerSequence(sequence) {
 
     await animateAnswerArmToRaw(firstLandingDeg, READING_TIMING.swingToSymbolMs)
 
+    onFirstLanding({ symbol, turns, symbolIndex })
+
     await wait(
       turns > 0
         ? READING_TIMING.pauseOnFirstLandMs
@@ -499,6 +574,11 @@ async function playAnswerSequence(sequence) {
       )
 
       currentRawDeg = nextLandingDeg
+
+      const depthLevel = Math.min(i + 1, 3)
+      if (depthLevel <= turns) {
+        onDepthChange({ symbol, turns, symbolIndex, depthLevel })
+      }
 
       await wait(
         isLastTurnForThisSymbol
@@ -600,24 +680,6 @@ async function computeAutoPreview(iconUrl, {
   return result
 }
 
-function applyAutoReadingCardPreviews(rootEl) {
-  const cardMediaEls = Array.from(rootEl.querySelectorAll('.reading-card-image-wrap'))
-
-  cardMediaEls.forEach((mediaEl) => {
-    const iconUrl = mediaEl.dataset.cardIconUrl
-    if (!iconUrl) return
-
-    computeAutoPreview(iconUrl, {
-      alphaThreshold: 8,
-      targetFill: 0.78,
-    }).then((auto) => {
-      mediaEl.style.setProperty('--card-scale', String(auto.scale))
-      mediaEl.style.setProperty('--card-nudge-x', `${auto.nudgeX}px`)
-      mediaEl.style.setProperty('--card-nudge-y', `${auto.nudgeY}px`)
-    })
-  })
-}
-
 function updateSpotlight() {
   const idx = state.selectedArm
   if (idx == null || idx > 2) return
@@ -664,9 +726,9 @@ function updateSpotlight() {
   spotlightMediaEl.style.setProperty('--prev-rot', `${p.rotate ?? 0}deg`)
   spotlightMediaEl.style.setProperty('--prev-fit', p.fit ?? 'contain')
 
-  const manualScale = (p.scale ?? 1)
-  const manualNX = (p.nudgeX ?? 0)
-  const manualNY = (p.nudgeY ?? 0)
+  const manualScale = p.scale ?? 1
+  const manualNX = p.nudgeX ?? 0
+  const manualNY = p.nudgeY ?? 0
 
   const useAuto = (p.autoScale ?? true)
 
@@ -677,9 +739,9 @@ function updateSpotlight() {
 
   if (!useAuto) {
     spotlightMediaEl.style.setProperty('--prev-scale', String(manualScale))
-    spotlightMediaEl.style.setProperty('--prev-nudge-x', `${manualNX}px`)
-    spotlightMediaEl.style.setProperty('--prev-nudge-y', `${manualNY}px`)
-    return
+    spotlightMediaEl.style.setProperty('--prev-nudge-x', `${manualNX}%`)
+    spotlightMediaEl.style.setProperty('--prev-nudge-y', `${manualNY}%`)
+    return;
   }
 
   if (!iconChanged) return
@@ -697,12 +759,10 @@ function updateSpotlight() {
     if (!cur?.iconUrl || cur.iconUrl !== iconUrl) return
 
     const finalScale = auto.scale * manualScale
-    const finalNX = auto.nudgeX + manualNX
-    const finalNY = auto.nudgeY + manualNY
 
-    spotlightMediaEl.style.setProperty('--prev-scale', String(finalScale))
-    spotlightMediaEl.style.setProperty('--prev-nudge-x', `${finalNX}px`)
-    spotlightMediaEl.style.setProperty('--prev-nudge-y', `${finalNY}px`)
+spotlightMediaEl.style.setProperty('--prev-scale', String(finalScale))
+spotlightMediaEl.style.setProperty('--prev-nudge-x', `${manualNX}%`)
+spotlightMediaEl.style.setProperty('--prev-nudge-y', `${manualNY}%`)
   })
 }
 
@@ -816,57 +876,29 @@ concentrateBtn.addEventListener('click', async () => {
   entry.className = 'reading-entry'
 
   entry.innerHTML = `
-    <div class="reading-card-list">
-      ${sequence.map(({ symbol, turns }) => {
-        const p = symbol.preview || {}
-        const rotate = p.rotate ?? 0
-        const fit = p.fit ?? 'contain'
-        const depth = formatInterpretationDepth(turns)
+    <div class="reading-card-list"></div>
+  `;
 
-        return `
-          <div class="reading-card">
-            <div
-              class="reading-card-image-wrap"
-              data-card-icon-url="${symbol.iconUrl}"
-              style="
-                --card-scale: 1;
-                --card-rot: ${rotate}deg;
-                --card-nudge-x: 0px;
-                --card-nudge-y: 0px;
-                --card-fit: ${fit};
-              "
-            >
-              <img
-                class="reading-card-image"
-                src="${symbol.iconUrl}"
-                alt="${escapeHtml(symbol.name)}"
-              />
-            </div>
+  answersEl.innerHTML = '';
+  answersEl.appendChild(entry);
 
-            <div class="reading-card-text">
-              <div class="reading-card-name">
-                ${escapeHtml(symbol.name)}
-              </div>
+  readingTabBtn.classList.add('has-reading');
+  showReadingPanel();
 
-              <div
-                class="reading-card-depth"
-                data-depth="${formatInterpretationDepth(turns)}"
-              >
-                ${formatInterpretationDepth(turns)}
-              </div>
-            </div>
-          </div>
-        `
-      }).join('')}
-    </div>
-  `
+  const cardListEl = entry.querySelector('.reading-card-list')
 
-  answersEl.innerHTML = ''
-  answersEl.appendChild(entry)
-  showReadingPanel()
-  applyAutoReadingCardPreviews(entry)
+  await playAnswerSequence(sequence, {
+    onFirstLanding: ({ symbol, symbolIndex }) => {
+      cardListEl.insertAdjacentHTML(
+        'beforeend',
+        readingCardHtml({ symbol, symbolIndex })
+      )
+    },
 
-  await playAnswerSequence(sequence)
+    onDepthChange: ({ symbolIndex, depthLevel }) => {
+      updateReadingCardDepth(symbolIndex, depthLevel, entry)
+    },
+  })
 })
 
 resetBtn.addEventListener('click', () => {
@@ -876,8 +908,12 @@ resetBtn.addEventListener('click', () => {
   animateArmTo(2, 150, 220)
 })
 
-backToControlsBtn.addEventListener('click', () => {
+controlsTabBtn.addEventListener('click', () => {
   showNormalPanel()
+})
+
+readingTabBtn.addEventListener('click', () => {
+  showReadingPanel()
 })
 
 // ---- init ----
