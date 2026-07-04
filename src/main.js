@@ -32,6 +32,8 @@ const WHEEL_SENSITIVITY_FINE = 0.015
 const SYMBOL_COUNT = 36
 const ANSWER_ARM_IDX = 3
 
+let armSelects = [];
+
 // Attach SVGs
 const armSvgUrls = [arm0Url, arm1Url, arm2Url, arm3Url]
 arms.forEach((armEl, i) => {
@@ -66,6 +68,14 @@ const idle = {
 function normalizeDeg(d) {
   d %= 360
   return d < 0 ? d + 360 : d
+}
+
+function armDegForSymbol(symbol) {
+  return normalizeDeg(symbol.deg - 90)
+}
+
+function armDegForNorthDeg(northDeg) {
+  return normalizeDeg(northDeg - 90)
 }
 
 function showNormalPanel() {
@@ -125,7 +135,7 @@ function easeIdleToStop(durationMs = 450, pauseMs = 2000) {
 }
 
 const READING_TIMING = {
-  swingToSymbolMs: 700,
+  swingToSymbolMs: 1000,
   pauseOnFirstLandMs: 100,
   msPerFullTurn: 1500,
   pauseBetweenTurnsMs: 100,
@@ -141,13 +151,6 @@ function wait(ms) {
 
 function randomMs(min, max) {
   return randomInt(min, max)
-}
-
-// SYMBOL_RING degrees are north-based.
-// Your arm degrees are east-based, where symbolForArmDeg() converts east -> north by adding 90.
-// So to point at a north-based symbol, subtract 90.
-function armDegForSymbol(symbol) {
-  return normalizeDeg(symbol.deg - 90)
 }
 
 function easeInOutCubic(t) {
@@ -185,24 +188,81 @@ function animateAnswerArmToRaw(targetDeg, durationMs) {
   })
 }
 
+function buildArmSelectors() {
+  symbolsEl.innerHTML = ''
+  armSelects = []
+
+  for (let i = 0; i < 3; i++) {
+    const row = document.createElement('div')
+    row.className = 'symbol-row arm-control-row'
+
+    const label = document.createElement('label')
+    label.htmlFor = `armSelect-${i}`
+    label.textContent = `Arm ${i + 1}`
+
+    const select = document.createElement('select')
+    select.id = `armSelect-${i}`
+    select.className = 'arm-symbol-select'
+    select.dataset.arm = String(i)
+
+    for (const symbol of SYMBOL_RING) {
+      const option = document.createElement('option')
+      option.value = String(symbol.deg)
+      option.textContent = symbol.name
+      select.appendChild(option)
+    }
+
+    select.addEventListener('change', (e) => {
+      const symbolDeg = Number(e.target.value)
+
+      setSelectedArm(i)
+      animateArmTo(i, armDegForNorthDeg(symbolDeg), 220)
+    })
+
+    select.addEventListener('keydown', (e) => {
+      const forwardKeys = ['ArrowDown', 'ArrowRight']
+      const backwardKeys = ['ArrowUp', 'ArrowLeft']
+
+      if (!forwardKeys.includes(e.key) && !backwardKeys.includes(e.key)) return
+
+      e.preventDefault()
+
+      const currentIndex = select.selectedIndex
+      const lastIndex = select.options.length - 1
+
+      let nextIndex
+
+      if (forwardKeys.includes(e.key)) {
+        nextIndex = currentIndex === lastIndex ? 0 : currentIndex + 1
+      } else {
+        nextIndex = currentIndex === 0 ? lastIndex : currentIndex - 1
+      }
+
+      select.selectedIndex = nextIndex
+      select.dispatchEvent(new Event('change', { bubbles: true }))
+    })
+    row.appendChild(label)
+    row.appendChild(select)
+    symbolsEl.appendChild(row)
+
+    armSelects.push(select)
+  }
+}
+
+function updateArmSelectors() {
+  armSelects.forEach((select, i) => {
+    const symbol = symbolForArmDeg(state.armDeg[i])
+    select.value = String(symbol.deg)
+  })
+}
+
 function render() {
   // normalize in place, then apply transforms
   for (let i = 0; i < state.armDeg.length; i++) state.armDeg[i] = normalizeDeg(state.armDeg[i])
   for (let i = 0; i < arms.length; i++) applyArm(i)
 
-  // update symbol readout for arms 0..2
-  let html = ''
-  for (let i = 0; i < 3; i++) {
-    const s = symbolForArmDeg(state.armDeg[i])
-    html += `
-      <div class="symbol-row">
-        <div>Arm ${i + 1}</div>
-        <div class="symbol-name">${s.name}</div>
-      </div>
-    `
-  }
-  symbolsEl.innerHTML = html
-  updateSpotlight()
+  updateArmSelectors();
+  updateSpotlight();
 }
 
 function animateArmTo(idx, targetDeg, ms = 160) {
@@ -540,6 +600,24 @@ async function computeAutoPreview(iconUrl, {
   return result
 }
 
+function applyAutoReadingCardPreviews(rootEl) {
+  const cardMediaEls = Array.from(rootEl.querySelectorAll('.reading-card-image-wrap'))
+
+  cardMediaEls.forEach((mediaEl) => {
+    const iconUrl = mediaEl.dataset.cardIconUrl
+    if (!iconUrl) return
+
+    computeAutoPreview(iconUrl, {
+      alphaThreshold: 8,
+      targetFill: 0.78,
+    }).then((auto) => {
+      mediaEl.style.setProperty('--card-scale', String(auto.scale))
+      mediaEl.style.setProperty('--card-nudge-x', `${auto.nudgeX}px`)
+      mediaEl.style.setProperty('--card-nudge-y', `${auto.nudgeY}px`)
+    })
+  })
+}
+
 function updateSpotlight() {
   const idx = state.selectedArm
   if (idx == null || idx > 2) return
@@ -738,30 +816,23 @@ concentrateBtn.addEventListener('click', async () => {
   entry.className = 'reading-entry'
 
   entry.innerHTML = `
-    <div class="reading-summary">
-      <span class="reading-label">Reading:</span>
-      ${totalTurns} total ${totalTurns === 1 ? 'turn' : 'turns'}
-    </div>
-
     <div class="reading-card-list">
       ${sequence.map(({ symbol, turns }) => {
         const p = symbol.preview || {}
-
-        const scale = p.scale ?? 1
         const rotate = p.rotate ?? 0
-        const nudgeX = p.nudgeX ?? 0
-        const nudgeY = p.nudgeY ?? 0
         const fit = p.fit ?? 'contain'
+        const depth = formatInterpretationDepth(turns)
 
         return `
           <div class="reading-card">
             <div
               class="reading-card-image-wrap"
+              data-card-icon-url="${symbol.iconUrl}"
               style="
-                --card-scale: ${scale};
+                --card-scale: 1;
                 --card-rot: ${rotate}deg;
-                --card-nudge-x: ${nudgeX}px;
-                --card-nudge-y: ${nudgeY}px;
+                --card-nudge-x: 0px;
+                --card-nudge-y: 0px;
                 --card-fit: ${fit};
               "
             >
@@ -772,12 +843,17 @@ concentrateBtn.addEventListener('click', async () => {
               />
             </div>
 
-            <div class="reading-card-name">
-              ${escapeHtml(symbol.name)}
-            </div>
+            <div class="reading-card-text">
+              <div class="reading-card-name">
+                ${escapeHtml(symbol.name)}
+              </div>
 
-            <div class="reading-card-depth">
-              ${formatInterpretationDepth(turns)}
+              <div
+                class="reading-card-depth"
+                data-depth="${formatInterpretationDepth(turns)}"
+              >
+                ${formatInterpretationDepth(turns)}
+              </div>
             </div>
           </div>
         `
@@ -788,6 +864,7 @@ concentrateBtn.addEventListener('click', async () => {
   answersEl.innerHTML = ''
   answersEl.appendChild(entry)
   showReadingPanel()
+  applyAutoReadingCardPreviews(entry)
 
   await playAnswerSequence(sequence)
 })
@@ -804,8 +881,9 @@ backToControlsBtn.addEventListener('click', () => {
 })
 
 // ---- init ----
+buildArmSelectors()
+buildSymbols()
 setSelectedArm(0)
 render()
-buildSymbols()
-pickNewIdleTarget(performance.now())
+pickNewIdleTarget(performance.now());
 requestAnimationFrame(idleLoop);

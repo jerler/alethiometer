@@ -40,7 +40,6 @@ body {
   grid-template-rows: auto auto;
   justify-items: center;
   align-content: center;
-  gap: 16px;
   padding: 24px;
   min-width: 0;
   min-height: 0;
@@ -86,12 +85,6 @@ body {
   border: 1px solid rgba(255,255,255,0.08);
 }
 
-.reading-summary {
-  font-size: 14px;
-  margin-bottom: 8px;
-}
-
-.reading-label,
 .reading-symbol-name {
   font-weight: 700;
 }
@@ -104,6 +97,36 @@ body {
 .reading-depth {
   font-style: italic;
 }
+
+.arm-control-row {
+  align-items: center;
+}
+
+.arm-control-row label {
+  font-weight: 600;
+}
+
+.arm-symbol-select {
+  max-width: 160px;
+  padding: 6px 8px;
+  border-radius: 10px;
+  border: 1px solid rgba(255,255,255,0.14);
+  background: rgba(255,255,255,0.08);
+  color: rgba(255,255,255,0.92);
+  font: inherit;
+  cursor: pointer;
+}
+
+.arm-symbol-select:focus {
+  outline: 2px solid rgba(255,255,255,0.35);
+  outline-offset: 2px;
+}
+
+.arm-symbol-select option {
+  color: #111;
+}
+
+
 /* ---- Controls ---- */
 .buttons {
   display: flex;
@@ -402,7 +425,6 @@ button:hover { background: rgba(0,0,0,0.04); }
 
 .reading-card-list {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 10px;
 }
 
@@ -414,8 +436,9 @@ button:hover { background: rgba(0,0,0,0.04); }
   border: 1px solid rgba(255,255,255,0.08);
 
   display: grid;
-  justify-items: center;
-  gap: 6px;
+  grid-template-columns: 112px 1fr;
+  align-items: center;
+  gap: 12px;
 }
 
 .reading-card-image-wrap {
@@ -425,7 +448,7 @@ button:hover { background: rgba(0,0,0,0.04); }
   --card-nudge-y: 0px;
   --card-fit: contain;
 
-  width: 100%;
+  width: 90%;
   aspect-ratio: 1 / 1;
   border-radius: 14px;
   background: rgba(0,0,0,0.22);
@@ -448,24 +471,40 @@ button:hover { background: rgba(0,0,0,0.04); }
   transform-origin: 50% 50%;
 }
 
+.reading-card-text {
+  min-width: 0;
+  display: grid;
+  gap: 6px;
+  justify-items: start;
+}
+
 .reading-card-name {
   max-width: 100%;
-  font-size: 13px;
+  font-size: 15px;
   font-weight: 700;
   line-height: 1.15;
-  text-align: center;
 }
 
 .reading-card-depth {
-  padding: 2px 8px;
+  padding: 3px 9px;
   border-radius: 999px;
   font-size: 11px;
-  font-weight: 700;
+  font-weight: 800;
   letter-spacing: 0.04em;
   text-transform: uppercase;
 
-  background: rgba(255,255,255,0.10);
-  color: rgba(255,255,255,0.82);
+  background: rgba(255,255,255,0.12);
+  color: rgba(255,255,255,0.86);
+}
+
+.reading-card-depth[data-depth="primary"] {
+  background: rgba(120, 190, 255, 0.20);
+}
+.reading-card-depth[data-depth="secondary"] {
+  background: rgba(190, 160, 255, 0.22);
+}
+.reading-card-depth[data-depth="deep"] {
+  background: rgba(255, 190, 120, 0.22);
 }
 
 .panel {
