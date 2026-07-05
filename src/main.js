@@ -1169,7 +1169,6 @@ function isNearFaceCenter(e) {
 }
 
 faceEl.addEventListener("pointerup", (e) => {
-  if (!isMobileLayout()) return
   if (!isNearFaceCenter(e)) return
 
   const now = performance.now()
