@@ -1,93 +1,177 @@
-<head>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-</head>
-<body>
-  <div id="app">
-    <div class="panel">
-      <div class="panel-tabs" role="tablist" aria-label="Alethiometer panel">
-        <button
-          id="controlsTab"
-          class="panel-tab active"
-          type="button"
-          role="tab"
-          aria-selected="true"
-          aria-controls="panelNormal"
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Alethiometer</title>
+  </head>
+
+  <body>
+    <div id="app">
+      <header class="app-header">
+        <div class="app-header-text">
+          <h1>Alethiometer</h1>
+          <p>Click an arm or dial to select it. Drag or scroll to rotate.</p>
+        </div>
+
+        <div class="app-header-actions">
+          <button id="concentrate" type="button">Concentrate</button>
+          <button id="reset" type="button">Reset</button>
+        </div>
+      </header>
+      <aside class="panel" aria-label="Alethiometer arms and reading">
+        <div class="panel-shell">
+          <div class="panel-content">
+            <div
+              id="panelNormal"
+              class="panel-view panel-normal"
+              role="tabpanel"
+              tabindex="0"
+              aria-labelledby="armsTab"
+            >
+              <div class="symbols" id="symbols"></div>
+
+              <div class="spotlight" aria-label="Selected symbol">
+                <div
+                  id="spotlightMedia"
+                  class="spotlight-media"
+                  role="img"
+                  aria-label="Selected symbol preview"
+                >
+                  <img id="spotlightImg" alt="" />
+                </div>
+
+                <div class="spotlight-meta">
+                  <div class="spotlight-label">Selected</div>
+                  <div id="spotlightName" class="spotlight-name">—</div>
+
+                  <div class="spotlight-label meanings-label">Meanings</div>
+                  <div id="spotlightPrimary" class="spotlight-primary">—</div>
+
+                  <ul
+                    id="spotlightSecondary"
+                    class="spotlight-secondary"
+                    aria-label="Secondary meanings"
+                  ></ul>
+                </div>
+              </div>
+            </div>
+
+            <div
+              id="panelReading"
+              class="panel-view panel-reading"
+              role="tabpanel"
+              tabindex="0"
+              aria-labelledby="readingTab"
+              hidden
+            >
+              <div id="answers" class="reading-symbols">
+                <div class="reading-entry reading-empty">
+                  <div class="reading-empty-title">No reading yet</div>
+                  <div class="reading-empty-mark" aria-hidden="true">✦</div>
+                  <p>
+                    Set the three question arms, then press <strong>Concentrate</strong>.
+                    The answer arm will move through symbols and build a reading here.
+                  </p>
+                </div>
+              </div>
+            </div>
+            <div
+              id="panelDictionary"
+              class="panel-view panel-dictionary"
+              role="tabpanel"
+              tabindex="0"
+              aria-labelledby="dictionaryTab"
+              hidden
+            >
+              <label class="dictionary-select-label" for="dictionarySelect">
+                Symbol
+              </label>
+
+              <select id="dictionarySelect" class="dictionary-select"></select>
+
+              <div id="dictionaryDetail" class="dictionary-detail"></div>
+            </div>
+          </div>
+
+          <div class="side-tabs" role="tablist" aria-label="Alethiometer panel sections">
+            <button
+              id="armsTab"
+              class="side-tab active"
+              type="button"
+              role="tab"
+              aria-selected="true"
+              aria-controls="panelNormal"
+            >
+              <span class="side-tab-content">
+                <span class="side-tab-dot" aria-hidden="true"></span>
+                <span class="side-tab-label">Arms</span>
+              </span>
+            </button>
+
+            <button
+              id="readingTab"
+              class="side-tab"
+              type="button"
+              role="tab"
+              aria-selected="false"
+              aria-controls="panelReading"
+            >
+              <span class="side-tab-content">
+                <span class="side-tab-dot" aria-hidden="true"></span>
+                <span class="side-tab-label">Reading</span>
+              </span>
+            </button>
+
+            <button
+              id="dictionaryTab"
+              class="side-tab"
+              type="button"
+              role="tab"
+              aria-selected="false"
+              aria-controls="panelDictionary"
+            >
+              <span class="side-tab-content">
+                <span class="side-tab-dot" aria-hidden="true"></span>
+                <span class="side-tab-label">Dictionary</span>
+              </span>
+            </button>
+          </div>
+        </div>
+      </aside>
+
+      <main class="stage">
+        <div
+          id="face"
+          class="face"
+          role="group"
+          aria-label="Alethiometer face"
         >
-          Controls
-        </button>
+          <div class="symbol-ring" id="symbolRing"></div>
 
-        <button
-          id="readingTab"
-          class="panel-tab"
-          type="button"
-          role="tab"
-          aria-selected="false"
-          aria-controls="panelReading"
-        >
-          Reading
-        </button>
-      </div>
-      <div id="panelNormal" class="panel-view panel-normal">
-        <h1 style="margin: 0">Alethiometer</h1>
-        <p>Click an arm or dial to select it. Drag or scroll to rotate.</p>
+          <div class="dial dial-0" data-arm="0" aria-label="Dial 1"></div>
+          <div class="dial dial-1" data-arm="1" aria-label="Dial 2"></div>
+          <div class="dial dial-2" data-arm="2" aria-label="Dial 3"></div>
 
-        <div class="symbols" id="symbols"></div>
-
-        <div class="spotlight" aria-label="Selected symbol">
-          <div
-            class="spotlight-media"
-            role="img"
-            aria-label="Selected symbol preview"
-          >
-            <img id="spotlightImg" alt="" />
+          <div class="arm arm-0" data-arm="0">
+            <img class="arm-svg" alt="" aria-hidden="true" />
           </div>
 
-          <div class="spotlight-meta">
-            <div class="spotlight-label">Selected</div>
-            <div id="spotlightName" class="spotlight-name">—</div>
-            <div class="spotlight-label meanings-label">Meanings</div>
-            <div id="spotlightPrimary" class="spotlight-primary">—</div>
-            <ul
-              id="spotlightSecondary"
-              class="spotlight-secondary"
-              aria-label="Secondary meanings"
-            ></ul>
+          <div class="arm arm-1" data-arm="1">
+            <img class="arm-svg" alt="" aria-hidden="true" />
+          </div>
+
+          <div class="arm arm-2" data-arm="2">
+            <img class="arm-svg" alt="" aria-hidden="true" />
+          </div>
+
+          <div class="arm arm-3" data-arm="3">
+            <img class="arm-svg" alt="" aria-hidden="true" />
           </div>
         </div>
-
-        <div class="buttons">
-          <button id="concentrate">Concentrate</button>
-          <button id="reset">Reset</button>
-        </div>
-      </div>
-
-      <div id="panelReading" class="panel-view panel-reading" hidden>
-        <div class="reading-header">
-          <div>
-            <div class="reading-kicker">Alethiometer</div>
-            <h2>Reading</h2>
-          </div>
-        </div>
-
-        <div id="answers" class="reading-symbols"></div>
-      </div>
+      </main>
     </div>
 
-    <div class="stage">
-      <div id="face" class="face" aria-label="Alethiometer face">
-        <div class="symbol-ring" id="symbolRing"></div>
-
-        <div class="dial dial-0" data-arm="0" aria-label="Dial 1"></div>
-        <div class="dial dial-1" data-arm="1" aria-label="Dial 2"></div>
-        <div class="dial dial-2" data-arm="2" aria-label="Dial 3"></div>
-
-        <div class="arm arm-0" data-arm="0"><img class="arm-svg" alt="" /></div>
-        <div class="arm arm-1" data-arm="1"><img class="arm-svg" alt="" /></div>
-        <div class="arm arm-2" data-arm="2"><img class="arm-svg" alt="" /></div>
-        <div class="arm arm-3" data-arm="3"><img class="arm-svg" alt="" /></div>
-      </div>
-    </div>
-  </div>
-
-  <script type="module" src="src/main.js"></script>
-</body>
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>
