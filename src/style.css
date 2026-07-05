@@ -91,7 +91,14 @@ body {
   display: flex;
   gap: 8px;
   flex: 0 0 auto;
-  align-items: end;
+  align-items: center;
+}
+
+.how-to-play-button {
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  border-radius: 50%;
 }
 
 .panel {
@@ -363,6 +370,100 @@ body {
   color: #111;
 }
 
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+
+  display: grid;
+  place-items: center;
+
+  padding: 20px;
+  background: rgba(0,0,0,0.58);
+  backdrop-filter: blur(6px);
+}
+
+.modal-backdrop[hidden] {
+  display: none;
+}
+
+.modal-separator {
+  width: 100%;
+  height: 1px;
+  margin: 18px 0;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255,255,255,0.22),
+    transparent
+  );
+}
+
+.how-to-play-instructions h3 {
+  margin: 0 0 10px;
+
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+
+  color: rgba(255, 190, 120, 0.88);
+}
+
+.mobile-instructions {
+  display: none;
+}
+
+.how-to-play-modal {
+  position: relative;
+  width: min(420px, 100%);
+  padding: 22px;
+  border-radius: 22px;
+
+  background: rgba(8, 14, 28, 0.98);
+  border: 1px solid rgba(255,255,255,0.14);
+  box-shadow: 0 24px 70px rgba(0,0,0,0.48);
+
+  color: rgba(255,255,255,0.82);
+}
+
+.how-to-play-modal h2 {
+  margin: 0 0 14px;
+  font-size: 20px;
+  font-weight: 500;
+  letter-spacing: 0.035em;
+  text-transform: uppercase;
+}
+
+.how-to-play-modal p {
+  margin: 0 0 12px;
+  font-size: 14px;
+  line-height: 1.55;
+  color: rgba(255,255,255,0.72);
+}
+
+.how-to-play-modal p:last-child {
+  margin-bottom: 0;
+}
+
+.modal-close-button {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+
+  width: 32px;
+  height: 32px;
+  padding: 0;
+
+  display: grid;
+  place-items: center;
+
+  border-radius: 50%;
+  font-size: 20px;
+  line-height: 1;
+}
+
 
 /* ---- Controls ---- */
 button {
@@ -458,7 +559,7 @@ button:focus {
 
   position: relative;
   user-select: none;
-  touch-action: none; /*required for pointer events on mobile */
+  touch-action: pan-x pan-y pinch-zoom;
 }
 
 .face::before {
@@ -930,31 +1031,250 @@ button:focus {
 
 
 @media (max-width: 900px) {
+  :root {
+    --mobile-header-height: 64px;
+    --mobile-tabbar-height: 54px;
+  }
+
   #app {
     grid-template-columns: 1fr;
-    grid-template-rows: 1fr;
-    grid-template-areas: "stage";
+    grid-template-rows: var(--mobile-header-height) 1fr;
+    grid-template-areas:
+      "app-header"
+      "stage";
   }
 
   .app-header {
+    display: flex;
+    height: var(--mobile-header-height);
+    min-height: 0;
+    padding: 12px 16px;
+    align-items: center;
+  }
+
+  .app-header-actions {
+    display: flex;
+    align-items: end;
+  }
+
+  #concentrate,
+  #reset {
+    display: none;
+  }
+
+  .desktop-instructions {
+    display: none;
+  }
+
+  .mobile-instructions {
+    display: block;
+  }
+
+  .how-to-play-button {
+    width: 32px;
+    height: 32px;
+    min-width: 32px;
+    padding: 0;
+
+    display: grid;
+    place-items: center;
+
+    border-radius: 50%;
+    font-size: 15px;
+    font-weight: 600;
+    line-height: 1;
+  }
+
+  .app-header h1 {
+    line-height: 1;
+    transform: none;
+  }
+
+  .app-header p {
     display: none;
   }
 
   .panel {
-    display: none;
+    display: block;
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    top: auto;
+    z-index: 30;
+
+    height: var(--mobile-tabbar-height);
+    padding-right: 0;
+
+    background: rgba(5, 12, 26, 0.98);
+    border-top: 1px solid rgba(255,255,255,0.12);
+    border-radius: 0;
+
+    overflow: hidden;
+    transition: height 220ms ease;
+  }
+
+  .panel.mobile-panel-open {
+    height: calc(100dvh - var(--mobile-header-height));
+  }
+
+  .panel-shell {
+    display: grid;
+
+    /* important: fully cancel the desktop side-tab column layout */
+    grid-template-columns: 1fr;
+    grid-template-rows: minmax(0, 1fr) var(--mobile-tabbar-height);
+
+    height: 100%;
+    min-height: 0;
+  }
+
+  .panel-content {
+    grid-column: 1;
+    grid-row: 1;
+
+    min-width: 0;
+    min-height: 0;
+
+    padding: 16px;
+    border-right: 0;
+    overflow-y: auto;
+
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+
+    transition: opacity 120ms ease;
+  }
+
+  .panel:not(.mobile-panel-open) .panel-content {
+    padding: 0;
+    overflow: hidden;
+
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+  }
+
+  .panel:not(.mobile-panel-open) .side-tab.active {
+    background: transparent;
+    color: rgba(255,255,255,0.66);
+  }
+
+  .panel:not(.mobile-panel-open) .side-tab.active:hover {
+    background: rgba(255,255,255,0.06);
+    color: rgba(255,255,255,0.9);
+  }
+
+  .panel.mobile-panel-open .side-tab.active {
+    background: rgba(255,255,255,0.095);
+    color: rgba(255,255,255,0.98);
+  }
+
+  .side-tabs {
+    grid-column: 1;
+    grid-row: 2;
+
+    position: static;
+    top: auto;
+
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0;
+    align-content: stretch;
+
+    width: 100%;
+    height: var(--mobile-tabbar-height);
+    min-height: var(--mobile-tabbar-height);
+    padding: 0;
+
+    border-top: 1px solid rgba(255,255,255,0.08);
+    background: rgba(5, 12, 26, 0.98);
+  }
+
+  .side-tab {
+    width: 100%;
+    min-width: 0;
+    min-height: 0;
+    height: var(--mobile-tabbar-height);
+    padding: 0;
+
+    font-size: 1.5em;
+    font-weight: 300;
+    letter-spacing: 0.015em;
+
+    display: grid;
+    place-items: center;
+
+    border: 0;
+    border-right: 1px solid rgba(255,255,255,0.08);
+    border-radius: 0;
+
+    background: transparent;
+    color: rgba(255,255,255,0.66);
+
+    box-shadow: none;
+    transform: none;
+  }
+
+  .side-tab:last-child {
+    border-right: 0;
+  }
+
+  .side-tab:hover {
+    background: rgba(255,255,255,0.06);
+    color: rgba(255,255,255,0.9);
+    box-shadow: none;
+    transform: none;
+  }
+
+  .side-tab.active {
+    background: rgba(255,255,255,0.095);
+    color: rgba(255,255,255,0.98);
+  }
+
+  .side-tab:focus {
+    outline: none;
+  }
+
+  .side-tab:focus-visible {
+    outline: none;
+    box-shadow: inset 0 0 0 2px rgba(255,255,255,0.28);
+  }
+
+  .side-tab-content {
+    position: static;
+    left: auto;
+    top: auto;
+
+    width: 100%;
+    height: 100%;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 6px;
+
+    transform: none;
+    white-space: nowrap;
+  }
+
+  .side-tab-label {
+    line-height: 1;
   }
 
   .stage {
-    padding: 20px 12px 12px;
+    padding: 12px 12px calc(var(--mobile-tabbar-height) + 12px);
     width: 100%;
-    height: 100dvh;
-    place-items: start center;
+    height: auto;
+    min-height: 0;
+    place-items: center;
   }
 
   .face {
     --face-size: min(
       calc((100vw - 24px) / 1.1),
-      calc((100dvh - 32px) / 1.1),
+      calc((100cqh - var(--mobile-tabbar-height)) / 1.1),
       700px
     );
     margin-top: calc(var(--face-size) * 0.05);

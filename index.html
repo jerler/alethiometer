@@ -17,6 +17,14 @@
         <div class="app-header-actions">
           <button id="concentrate" type="button">Concentrate</button>
           <button id="reset" type="button">Reset</button>
+          <button
+            id="howToPlayBtn"
+            class="how-to-play-button"
+            type="button"
+            aria-label="How to play"
+          >
+            ?
+          </button>
         </div>
       </header>
       <aside class="panel" aria-label="Alethiometer arms and reading">
@@ -170,6 +178,78 @@
           </div>
         </div>
       </main>
+
+      <div id="howToPlayModal" class="modal-backdrop" hidden>
+      <section
+        class="how-to-play-modal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="howToPlayTitle"
+      >
+        <button
+          id="howToPlayClose"
+          class="modal-close-button"
+          type="button"
+          aria-label="Close how to play"
+        >
+          ×
+        </button>
+        <h2 id="howToPlayTitle">How to Read</h2>
+        <p>
+          The alethiometer is a mystical instrument that reveals truths, but only to
+          those who know how to read it. Its answers are given 
+          through the layered meanings of its 36 symbols. Concentrate on your question
+          and let the Dust of the universe flow through the compass.
+        </p>
+        <p>
+          Inspired by the truth-telling device from <em>His Dark Materials</em> by
+          Philip Pullman, this digital version invites you to practice your own reading.
+        </p>
+
+        <div class="modal-separator" aria-hidden="true"></div>
+
+        <section class="how-to-play-instructions">
+          <h3>To make a reading</h3>
+          <div class="desktop-instructions">
+            <p>
+              First, ask your question by setting the three controllable arms to relevant
+              symbols. Use the dials, drag the arms, or set them directly from the Arms tab. When ready,
+              concentrate on your question by clicking "concentrate" or by double-clicking the center of the alethiometer.
+            </p>
+            <p>
+              The fourth arm then gives the answer. The more times it lands on a symbol, the deeper the meaning
+              it's trying to convey. Ex: Hourglass may mean "time" when pointed at once, but with repeated 
+              turns it might really suggest "impermanence", "legacy", or even just "sand". The reading is yours to interpret.
+            </p>
+            <p>
+              To guide you, we have included a dictionary of some possible meanings for each symbol,
+              but every reader must learn to communicate through their own interpretations, 
+              associations, and intricacies.
+            </p>
+          </div>
+
+          <div class="mobile-instructions">
+            <p>
+              First, ask your question by setting the three controllable arms to relevant
+              symbols. Use the dials, drag the arms, or set them directly from the Arms tab. When ready,
+              double-tap the center of the alethiometer to concentrate.
+            </p>
+
+            <p>
+              The fourth arm then gives the answer. The more times it lands on a symbol, the deeper the meaning
+              it's trying to convey. Ex: Hourglass may mean "time" when pointed at once, but with repeated 
+              turns it might really suggest "impermanence", "legacy", or even just "sand". The reading is yours to interpret.
+            </p>
+
+            <p>
+              To guide you, we have included a dictionary of some possible meanings for each symbol,
+              but every reader must learn to communicate through their own interpretations, 
+              associations, and intricacies.
+            </p>
+          </div>
+        </section>
+      </section>
+    </div>
     </div>
 
     <script type="module" src="/src/main.js"></script>

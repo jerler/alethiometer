@@ -28,6 +28,11 @@ const dictionaryTabBtn = document.getElementById("dictionaryTab")
 const dictionarySelectEl = document.getElementById("dictionarySelect")
 const dictionaryDetailEl = document.getElementById("dictionaryDetail")
 
+// Modal
+const howToPlayBtn = document.getElementById("howToPlayBtn")
+const howToPlayModal = document.getElementById("howToPlayModal")
+const howToPlayClose = document.getElementById("howToPlayClose")
+
 // Spotlight elements (panel)
 const spotlightImgEl = document.getElementById("spotlightImg");
 const spotlightNameEl = document.getElementById("spotlightName");
@@ -112,7 +117,7 @@ function showPanelTab(tabName) {
     tab.setAttribute("aria-selected", String(active))
   }
 
-  if (tabName === "reading") {
+  if (tabName === "reading" && isReadingPanelActive()) {
     clearReadingAvailable()
   }
 }
@@ -134,7 +139,13 @@ function shortestDiffDeg(from, to) {
 }
 
 function isReadingPanelActive() {
-  return panelReadingEl && !panelReadingEl.hidden
+  if (!panelReadingEl || panelReadingEl.hidden) return false
+
+  if (isMobileLayout()) {
+    return isMobilePanelOpen()
+  }
+
+  return true
 }
 
 function markReadingAvailable() {
@@ -252,6 +263,25 @@ function cancelReadingIfQuestionChanged() {
       returnToArms: false,
     });
   }
+}
+
+function isMobileLayout() {
+  return window.matchMedia("(max-width: 900px)").matches
+}
+
+function openMobilePanel() {
+  if (!isMobileLayout()) return
+  panelDictionaryEl?.closest(".panel")?.classList.add("mobile-panel-open")
+}
+
+function closeMobilePanel() {
+  panelDictionaryEl?.closest(".panel")?.classList.remove("mobile-panel-open")
+}
+
+function isMobilePanelOpen() {
+  return panelDictionaryEl
+    ?.closest(".panel")
+    ?.classList.contains("mobile-panel-open")
 }
 
 function symbolByDeg(deg) {
@@ -489,6 +519,33 @@ function animateAnswerArmToRaw(targetDeg, durationMs, readingId) {
     requestAnimationFrame(frame)
   })
 }
+
+function openHowToPlay() {
+  if (!howToPlayModal) return
+  howToPlayModal.hidden = false
+  howToPlayClose?.focus()
+}
+
+function closeHowToPlay() {
+  if (!howToPlayModal) return
+  howToPlayModal.hidden = true
+  howToPlayBtn?.focus()
+}
+
+howToPlayBtn?.addEventListener("click", openHowToPlay)
+howToPlayClose?.addEventListener("click", closeHowToPlay)
+
+howToPlayModal?.addEventListener("click", (e) => {
+  if (e.target === howToPlayModal) {
+    closeHowToPlay()
+  }
+})
+
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape" && howToPlayModal && !howToPlayModal.hidden) {
+    closeHowToPlay()
+  }
+})
 
 function buildArmSelectors() {
   symbolsEl.innerHTML = "";
@@ -1094,6 +1151,42 @@ faceEl.addEventListener(
   { passive: false },
 );
 
+let lastFaceTapAt = 0
+
+function isNearFaceCenter(e) {
+  const rect = faceEl.getBoundingClientRect()
+  const cx = rect.left + rect.width / 2
+  const cy = rect.top + rect.height / 2
+
+  const dx = e.clientX - cx
+  const dy = e.clientY - cy
+  const distance = Math.hypot(dx, dy)
+
+  // Center tap zone: about 22% of the face radius.
+  const centerRadius = rect.width * 0.22
+
+  return distance <= centerRadius
+}
+
+faceEl.addEventListener("pointerup", (e) => {
+  if (!isMobileLayout()) return
+  if (!isNearFaceCenter(e)) return
+
+  const now = performance.now()
+  const isDoubleTap = now - lastFaceTapAt < 320
+  lastFaceTapAt = now
+
+  if (!isDoubleTap) return
+
+  e.preventDefault()
+
+  if (idle.isReading) {
+    resetBtn.click()
+  } else {
+    concentrateBtn.click()
+  }
+})
+
 concentrateBtn.addEventListener("click", async () => {
   if (!answersEl) return;
   if (idle.isReading) return;
@@ -1110,8 +1203,12 @@ concentrateBtn.addEventListener("click", async () => {
   answersEl.innerHTML = ''
   answersEl.appendChild(entry)
 
-  clearReadingAvailable()
-  showReadingPanel()
+  if (isMobileLayout()) {
+    markReadingAvailable()
+  } else {
+    clearReadingAvailable()
+    showReadingPanel()
+  }
 
   const cardListEl = entry.querySelector(".reading-card-list");
   if (!cardListEl) return;
@@ -1165,18 +1262,39 @@ resetBtn.addEventListener('click', () => {
   clearReadingAvailable();
 });
 
-armsTabBtn?.addEventListener("click", () => {
-  showNormalPanel();
-});
+function handlePanelTabClick(tabName) {
+  const tabMap = {
+    arms: armsTabBtn,
+    reading: readingTabBtn,
+    dictionary: dictionaryTabBtn,
+  }
 
-dictionaryTabBtn?.addEventListener("click", () => {
-  showDictionaryPanel()
+  const clickedTab = tabMap[tabName]
+  const clickedActiveTab = clickedTab?.classList.contains("active")
+
+  if (isMobileLayout() && clickedActiveTab && isMobilePanelOpen()) {
+    closeMobilePanel()
+    return
+  }
+
+  showPanelTab(tabName)
+  openMobilePanel()
+  if (tabName === "reading") {
+    clearReadingAvailable()
+  }
+}
+
+armsTabBtn?.addEventListener("click", () => {
+  handlePanelTabClick("arms")
 })
 
 readingTabBtn?.addEventListener("click", () => {
-  showReadingPanel();
-  clearReadingAvailable();
-});
+  handlePanelTabClick("reading")
+})
+
+dictionaryTabBtn?.addEventListener("click", () => {
+  handlePanelTabClick("dictionary")
+})
 
 answersEl?.addEventListener("click", (e) => {
   const cardEl = e.target.closest(".reading-card")
@@ -1187,6 +1305,7 @@ answersEl?.addEventListener("click", (e) => {
 
   renderDictionarySymbol(symbol)
   showDictionaryPanel()
+  openMobilePanel()
 })
 
 answersEl?.addEventListener("keydown", (e) => {
@@ -1202,6 +1321,7 @@ answersEl?.addEventListener("keydown", (e) => {
 
   renderDictionarySymbol(symbol)
   showDictionaryPanel()
+  openMobilePanel()
 })
 
 // ---- init ----
