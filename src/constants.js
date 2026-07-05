@@ -52,8 +52,9 @@ export const SYMBOL_RING = [
       scale: 1.1,
       nudgeY: -17,
     },
-    primaryMeaning: 'Time', 
-    secondaryMeanings: ['death','inevitability','mortality','ending','urgency','patience','change','aging','memory','countdown','cycles','impermanence',"fate","consequence","delay","opportunity","legacy",'falling','glass','sand','transition',"balance","equilibrium"] 
+    primaryMeaning: 'time', 
+    secondaryMeanings: ['death','inevitability','finality','urgency','mortality','ending','change','transition','patience','memory','aging','countdown','cycles','impermanence','fate',"consequence","delay","opportunity","legacy",'falling','glass','sand','balance','equilibrium',"waiting","threshold",'expiration','waste','timing','lateness','acceptance','reversal','measurement','duration','ripening','skeleton','desert','hole','pour'],
+    description: "The Hourglass represents time as an unstoppable force, carrying all things towards an inevitable finality. As an impartial record keeper it speaks to both urgency as well as patience, as time continues to flow for all caught in its sand. It points to what is passing away, what must be endured, and what consequence is approaching. At a deeper level, it explores fate, memory, impermanence, and the fragile balance between what has been spent and what still remains."
   },
   { 
     deg: 10, 

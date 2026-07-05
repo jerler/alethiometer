@@ -166,19 +166,35 @@ body {
   overflow: hidden;
 }
 
-.dictionary-media {
-  margin-bottom: 2px;
+.spotlight-media.dictionary-media {
+  width: min(112px, 56%);
+}
+
+.dictionary-primary-statement {
+  margin-top: -2px;
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(255, 190, 120, 0.92);
+}
+
+.dictionary-description-section {
+  width: 100%;
+}
+
+.dictionary-description-section p {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.55;
+  color: rgba(255,255,255,0.68);
 }
 
 .dictionary-name {
   font-size: 18px;
   font-weight: 750;
   line-height: 1.1;
-}
-
-.dictionary-degree {
-  font-size: 11px;
-  opacity: 0.55;
 }
 
 .dictionary-section {
@@ -213,6 +229,22 @@ body {
   background: rgba(255,255,255,0.075);
   color: rgba(255,255,255,0.74);
   font-size: 12px;
+}
+
+.dictionary-deep-meanings {
+  max-height: 7.2em;
+  overflow: hidden;
+
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    rgba(0,0,0,1) 55%,
+    rgba(0,0,0,0)
+  );
+  mask-image: linear-gradient(
+    to bottom,
+    rgba(0,0,0,1) 55%,
+    rgba(0,0,0,0)
+  );
 }
 
 .reading-card {
@@ -882,6 +914,18 @@ button:focus {
 .side-tab:focus {
   outline: 2px solid rgba(255,255,255,0.35);
   outline-offset: 2px;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
 }
 
 

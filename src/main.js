@@ -274,12 +274,49 @@ function buildDictionarySelect() {
     const symbol = symbolByDeg(Number(dictionarySelectEl.value))
     if (symbol) renderDictionarySymbol(symbol)
   })
+
+  dictionarySelectEl.addEventListener("keydown", (e) => {
+    const forwardKeys = ["ArrowDown", "ArrowRight"]
+    const backwardKeys = ["ArrowUp", "ArrowLeft"]
+
+    if (!forwardKeys.includes(e.key) && !backwardKeys.includes(e.key)) return
+
+    e.preventDefault()
+
+    const currentIndex = dictionarySelectEl.selectedIndex
+    const lastIndex = dictionarySelectEl.options.length - 1
+
+    let nextIndex
+
+    if (forwardKeys.includes(e.key)) {
+      nextIndex = currentIndex === lastIndex ? 0 : currentIndex + 1
+    } else {
+      nextIndex = currentIndex === 0 ? lastIndex : currentIndex - 1
+    }
+
+    dictionarySelectEl.selectedIndex = nextIndex
+    dictionarySelectEl.dispatchEvent(new Event("change", { bubbles: true }))
+  })
 }
 
 function renderDictionarySymbol(symbol) {
   if (!dictionaryDetailEl || !dictionarySelectEl) return
 
   dictionarySelectEl.value = String(symbol.deg)
+
+  const secondaryMeanings = Array.isArray(symbol.secondaryMeanings)
+    ? symbol.secondaryMeanings.filter(Boolean)
+    : []
+
+  const primaryMeanings = [
+    symbol.primaryMeaning,
+    ...secondaryMeanings.slice(0, 3),
+  ].filter(Boolean)
+
+  const secondaryMeaningsGroup = secondaryMeanings.slice(3, 7)
+  const deepMeaningsGroup = secondaryMeanings.slice(7)
+
+  const description = symbol.description || "No description found"
 
   dictionaryDetailEl.innerHTML = `
     <article class="dictionary-card">
@@ -292,20 +329,47 @@ function renderDictionarySymbol(symbol) {
       </div>
 
       <div class="dictionary-name">${escapeHtml(symbol.name)}</div>
-      <div class="dictionary-degree">${symbol.deg}°</div>
+
+      <div class="dictionary-primary-statement">
+        ${escapeHtml(symbol.primaryMeaning ?? "—")}
+      </div>
+
+      <section class="dictionary-description-section">
+        <h3 class="sr-only">Description</h3>
+        <p>${escapeHtml(description)}</p>
+      </section>
 
       <section class="dictionary-section">
-        <div class="dictionary-label">Primary meaning</div>
-        <div class="dictionary-primary">
-          ${escapeHtml(symbol.primaryMeaning ?? "—")}
+        <div class="dictionary-label">Primary meanings</div>
+        <div class="dictionary-meanings">
+          ${primaryMeanings
+            .map((meaning) => `<span>${escapeHtml(meaning)}</span>`)
+            .join("")}
         </div>
       </section>
 
       <section class="dictionary-section">
-        <div class="dictionary-label">Associated meanings</div>
+        <div class="dictionary-label">Secondary meanings</div>
         <div class="dictionary-meanings">
-          ${(symbol.secondaryMeanings || [])
+          ${secondaryMeaningsGroup
             .map((meaning) => `<span>${escapeHtml(meaning)}</span>`)
+            .join("")}
+        </div>
+      </section>
+
+      <section class="dictionary-section dictionary-deep-section">
+        <div class="dictionary-label">Deep meanings</div>
+        <div class="dictionary-meanings dictionary-deep-meanings">
+          ${deepMeaningsGroup
+            .map((meaning, i) => {
+              const opacity = Math.max(0.16, 0.8 - i * 0.08)
+
+              return `
+                <span style="opacity: ${opacity}">
+                  ${escapeHtml(meaning)}
+                </span>
+              `
+            })
             .join("")}
         </div>
       </section>
