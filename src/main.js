@@ -4,10 +4,15 @@ import arm0Url from "./assets/arm-0.svg";
 import arm1Url from "./assets/arm-1.svg";
 import arm2Url from "./assets/arm-2.svg";
 import arm3Url from "./assets/arm-3.svg";
+import dialFrame0Url from "./assets/dial-frame-0.png";
+import dialFrame1Url from "./assets/dial-frame-1.png";
+import dialFrame2Url from "./assets/dial-frame-2.png";
 
 const faceEl = document.getElementById("face");
 const arms = Array.from(document.querySelectorAll(".arm"));
 const dials = Array.from(document.querySelectorAll(".dial"));
+const DIAL_FRAME_URLS = [dialFrame0Url, dialFrame1Url, dialFrame2Url];
+const DIAL_FRAME_STEP_DEG = 10;
 const symbolsEl = document.getElementById("symbols");
 const symbolRingEl = document.getElementById("symbolRing");
 const concentrateBtn = document.getElementById("concentrate");
@@ -59,6 +64,11 @@ const state = {
   armDeg: [270, 30, 150, 320],
   drag: null, // { kind: 'arm'|'dial', idx, pointerId, startX, startY, startDeg }
 };
+
+const dialAnim = state.armDeg.slice(0, 3).map((deg) => ({
+  phase: 0,
+  lastArmDeg: deg,
+}));
 
 // wheel snap timers (for arms 0..2)
 const wheelSnapTimers = Array(3).fill(null);
@@ -262,6 +272,39 @@ function cancelReadingIfQuestionChanged() {
       clearAnswers: true,
       returnToArms: false,
     });
+  }
+}
+
+function mod(n, m) {
+  return ((n % m) + m) % m;
+}
+
+function setDialFrame(idx, frameIdx) {
+  const dialEl = dials[idx];
+  if (!dialEl) return;
+
+  const url = DIAL_FRAME_URLS[mod(frameIdx, DIAL_FRAME_URLS.length)];
+  dialEl.style.backgroundImage = `url("${url}")`;
+}
+
+function buildDials() {
+  dials.forEach((dialEl, idx) => {
+    dialEl.style.backgroundImage = `url("${DIAL_FRAME_URLS[0]}")`;
+    dialEl.style.backgroundSize = "contain";
+    dialEl.style.backgroundRepeat = "no-repeat";
+    dialEl.style.backgroundPosition = "center";
+  });
+}
+
+function updateDialFrames() {
+  for (let i = 0; i < 3; i++) {
+    const currentDeg = normalizeDeg(state.armDeg[i]);
+    const delta = shortestDiffDeg(dialAnim[i].lastArmDeg, currentDeg);
+
+    dialAnim[i].lastArmDeg = currentDeg;
+    dialAnim[i].phase += delta / DIAL_FRAME_STEP_DEG;
+
+    setDialFrame(i, Math.round(dialAnim[i].phase));
   }
 }
 
@@ -547,6 +590,35 @@ document.addEventListener("keydown", (e) => {
   }
 })
 
+const symbolHighlightTimers = new WeakMap()
+
+function highlightSymbol(symbol, durationMs = 5600) {
+  if (!symbolRingEl || !symbol) return
+
+  const symbolEl = symbolRingEl.querySelector(
+    `.symbol[data-symbol-deg="${symbol.deg}"]`
+  )
+
+  if (!symbolEl) return
+
+  const existingTimer = symbolHighlightTimers.get(symbolEl)
+
+  if (existingTimer) {
+    window.clearTimeout(existingTimer)
+  }
+
+  symbolEl.classList.remove("symbol-highlight")
+  void symbolEl.offsetWidth
+  symbolEl.classList.add("symbol-highlight")
+
+  const timer = window.setTimeout(() => {
+    symbolEl.classList.remove("symbol-highlight")
+    symbolHighlightTimers.delete(symbolEl)
+  }, durationMs)
+
+  symbolHighlightTimers.set(symbolEl, timer)
+}
+
 function buildArmSelectors() {
   symbolsEl.innerHTML = "";
   armSelects = [];
@@ -637,6 +709,7 @@ function render() {
     applyArm(i);
   }
 
+  updateDialFrames();
   updateArmSelectors();
   updateSpotlight();
   cancelReadingIfQuestionChanged();
@@ -711,6 +784,8 @@ function buildSymbols() {
 
     const el = document.createElement("div");
     el.className = "symbol";
+    el.dataset.symbolDeg = String(s.deg);
+    el.style.setProperty("--deg", `${s.deg}deg`);
     el.style.setProperty("--deg", `${s.deg}deg`);
 
     const a = s.appearance || {};
@@ -737,6 +812,36 @@ function buildSymbols() {
     symbolRingEl.appendChild(el);
   }
 }
+
+let lastSymbolTap = {
+  deg: null,
+  time: 0,
+}
+
+symbolRingEl?.addEventListener("pointerup", (e) => {
+  const symbolEl = e.target.closest(".symbol")
+  if (!symbolEl) return
+
+  const symbolDeg = Number(symbolEl.dataset.symbolDeg)
+  const symbol = symbolByDeg(symbolDeg)
+  if (!symbol) return
+
+  const now = performance.now()
+  const isSameSymbol = lastSymbolTap.deg === symbolDeg
+  const isDoubleTap = isSameSymbol && now - lastSymbolTap.time < 320
+
+  lastSymbolTap = {
+    deg: symbolDeg,
+    time: now,
+  }
+
+  if (!isDoubleTap) return
+
+  e.preventDefault()
+  e.stopPropagation()
+
+  openDictionaryForSymbol(symbol)
+})
 
 // ---- Idle arm (arm 3) ----
 function rand(min, max) {
@@ -804,6 +909,14 @@ function formatInterpretationDepth(level) {
   if (level <= 1) return "primary";
   if (level === 2) return "secondary";
   return "deep";
+}
+
+function openDictionaryForSymbol(symbol) {
+  if (!symbol) return
+
+  renderDictionarySymbol(symbol)
+  showDictionaryPanel()
+  openMobilePanel()
 }
 
 async function playAnswerSequence(
@@ -1214,6 +1327,8 @@ concentrateBtn.addEventListener("click", async () => {
 
   await playAnswerSequence(sequence, {
     onFirstLanding: ({ symbol, symbolIndex }) => {
+      highlightSymbol(symbol)
+
       cardListEl.insertAdjacentHTML(
         'beforeend',
         readingCardHtml({ symbol, symbolIndex })
@@ -1222,7 +1337,8 @@ concentrateBtn.addEventListener("click", async () => {
       markReadingAvailable()
     },
 
-    onDepthChange: ({ symbolIndex, depthLevel }) => {
+    onDepthChange: ({ symbol, symbolIndex, depthLevel }) => {
+      highlightSymbol(symbol)
       updateReadingCardDepth(symbolIndex, depthLevel, entry);
     },
   });
@@ -1326,6 +1442,7 @@ answersEl?.addEventListener("keydown", (e) => {
 // ---- init ----
 buildArmSelectors();
 buildSymbols();
+buildDials();
 setSelectedArm(0);
 showReadingEmptyState();
 buildDictionarySelect()
