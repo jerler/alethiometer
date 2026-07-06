@@ -13,6 +13,7 @@ const arms = Array.from(document.querySelectorAll(".arm"));
 const dials = Array.from(document.querySelectorAll(".dial"));
 const DIAL_FRAME_URLS = [dialFrame0Url, dialFrame1Url, dialFrame2Url];
 const DIAL_FRAME_STEP_DEG = 10;
+const ARM_KEY_STEP_DEG = 360 / SYMBOL_RING.length;
 const symbolsEl = document.getElementById("symbols");
 const symbolRingEl = document.getElementById("symbolRing");
 const concentrateBtn = document.getElementById("concentrate");
@@ -371,6 +372,44 @@ function buildDictionarySelect() {
     dictionarySelectEl.dispatchEvent(new Event("change", { bubbles: true }))
   })
 }
+
+document.addEventListener("keydown", (e) => {
+  const clockwiseKeys = ["ArrowRight", "ArrowDown"];
+  const counterClockwiseKeys = ["ArrowLeft", "ArrowUp"];
+
+  if (
+    !clockwiseKeys.includes(e.key) &&
+    !counterClockwiseKeys.includes(e.key)
+  ) {
+    return;
+  }
+
+  // Don't steal arrow keys while the user is using form controls.
+  const tagName = document.activeElement?.tagName?.toLowerCase();
+
+  if (
+    tagName === "input" ||
+    tagName === "textarea" ||
+    tagName === "select" ||
+    document.activeElement?.isContentEditable
+  ) {
+    return;
+  }
+
+  if (idle.isReading) return;
+
+  e.preventDefault();
+
+  const idx = state.selectedArm;
+
+  // Only the three question arms are keyboard-controlled.
+  if (idx == null || idx > 2) return;
+
+  const direction = clockwiseKeys.includes(e.key) ? 1 : -1;
+  const targetDeg = snapToSymbol(state.armDeg[idx] + direction * ARM_KEY_STEP_DEG);
+
+  animateArmTo(idx, targetDeg, 160);
+});
 
 function renderDictionarySymbol(symbol) {
   if (!dictionaryDetailEl || !dictionarySelectEl) return

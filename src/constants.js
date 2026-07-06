@@ -67,8 +67,9 @@ export const SYMBOL_RING = [
     preview: {
       scale: 1.5
     },
-    primaryMeaning: 'Day', 
-    secondaryMeanings: ['truth','heat','bright light','power','certainty','awaken','exposure','guidance','authority','clarity','summer','masculinity','beginning','glory','life','vitality','health','renewal','hope','joy','success','blessing','energy','fertility','growth','creation','scorching']
+    primaryMeaning: 'day', 
+    secondaryMeanings: ['truth','clarity','life','power','heat','awakening','exposure','certainty','authority','bright light','summer','masculinity','guidance','beginning','glory','vitality','health','radiance','renewal','hope','joy','success','blessing','energy','fertility','growth','creation','scorching','illumination','revelation','visibility','confidence','pride','majesty','dominion','focus','noon','fire','arrogance','vanity','oppression','drought'],
+    description: "The Sun represents the world brought fully into view, providing illumination and clarity to things otherwise hidden in shadow. It is the great awakener, calling life upward out of slumber into warmth, growth, confidence, and renewal. Its light offers truth and vitality, but can also scorch things that are best left unexposed. At a deeper level, it explores glory, authority, pride, creation, and the dangerous brilliance of a light strong enough to burn."
   },
   { 
     deg: 20, 
@@ -84,8 +85,9 @@ export const SYMBOL_RING = [
       scale: 1.2,
       nudgeY: -5
     },
-    primaryMeaning: 'Sequence', 
-    secondaryMeanings: ['lexicon','hierarchy','education','boundaries','communication','totality','origin','ending','definition','completion','naming','alphabet','rank','destiny','inevitability','ink','threshold','purpose','authority'] 
+    primaryMeaning: 'sequence', 
+    secondaryMeanings: ['education','communication','predictability','totality','hierarchy','language','record','beginning','ending','definition','boundaries','completion','naming','lexicon','remembrance','rank','destiny','inevitability','law','alphabet','purpose','authority','threshold','order','canon','legacy','scripture','knowledge','classification','identity','closure','frame','bookends','continuum','first','last','precedence','priority','placement','position','index','catalogue'],
+    description: "Alpha and Omega represents meaning arranged into sequence, where each mark takes its place within the greater order of the whole. It is the product of education and an enduring means of communication, capturing knowledge and perpetuating it through time. It speaks to the structures that define, rank, preserve, and communicate the intangible parts of our world. At a deeper level, it could refer to law, legacy, and the hidden framework by which things are named, placed, and understood."
   },
   { 
     deg: 30, 
@@ -99,8 +101,9 @@ export const SYMBOL_RING = [
       scale: 0.95,
       nudgeY: -24
     },
-    primaryMeaning: 'Obedience', 
-    secondaryMeanings: ['submission','force','control','entertainment','ridicule','exploitation','deception','performance','mask','use','coercion','role','constraint','dependence','strings attached','fear'] 
+    primaryMeaning: 'obedience', 
+    secondaryMeanings: ['entertainment','restraint','influence','performance','dependence','control','deception','exploitation','ridicule','force','mask','manipulation','agency','ventriloquism','constraint','strings attached','obligation','compliance','use','coercion','role','powerlessness','influence','handler','humiliation','fear','conditioning','puppet','stage','spectacle','pretence','artifice','false self','captivity','leverage','pressure','command','helplessness','objectification','control from afar'],
+    description: "The Marionette represents obedience made visible, a figure moved for entertainment by restraints it cannot escape. It is the performer who acts out another's will while appearing to move on its own, speaking words that come from someone else's lips. It explores the relationship between coercion and dependence, for without the puppet master the puppet remains motionless. At a deeper level, you will find themes of power, fear, false selves, and the hidden strings that we find ourselves attached to."
   },
   { 
     deg: 40, 
@@ -114,8 +117,9 @@ export const SYMBOL_RING = [
       scale: 0.9,
       nudgeY: -26
     },
-    primaryMeaning: 'Cunning', 
-    secondaryMeanings: ['evil','natural wisdom','flexibility','danger','temptation','deceit','rebellion','secrecy','hidden knowledge','strategy','shedding','renewal','poison','seduction','hypnosis','silence','sin','betrayal'] 
+    primaryMeaning: 'cunning', 
+    secondaryMeanings: ['evil','natural wisdom','flexibility','danger','temptation','deceit','rebellion','secrecy','hidden knowledge','charm','shedding','strategy','forbidden','warning','venom','constriction','renewal','earth','camouflage','trap','fear','seduction','hypnosis','rebirth','silence','sin','betrayal','instinct','transformation','adaptation','patience','ambush','poison','healing','medicine','skin','coil','winding','stealth','underworld','entanglement','spiral','mystery','antidote'],
+    description: "The Serpent is an ancient symbol of cunning and evil. It is the tempter in the garden, flexible enough to escape restraint, charming enough to invite trust, and venomous enough to make that trust fatal. It symbolises danger, deceit, rebellion, and secrecy. But diving deeper into this symbol we find rebirth in the serpent's shedding skin, yielding transformation, healing, and a renewal that on the surface is often overlooked."
   },
   { 
     deg: 50, 
@@ -129,7 +133,7 @@ export const SYMBOL_RING = [
       scale: 1.4,
       nudgeY: -8
     },
-    primaryMeaning: 'Alchemy', 
+    primaryMeaning: 'alchemy', 
     secondaryMeanings: ['craft','achieved wisdom','creation','cooking','magic','transformation','beverage','combination','melting pot','ritual','concoction','process','patience','heat','nourishment','medicine','poison','tool'] 
   },
   { 
@@ -147,7 +151,7 @@ export const SYMBOL_RING = [
       nudgeY: 4,
       nudgeX: -8
     },
-    primaryMeaning: 'Resilience', 
+    primaryMeaning: 'resilience', 
     secondaryMeanings: ['steadfastness','prevention','hope','restraint','stuck','encumbrance','safety','stubborn','pause','dependability','weight','obligation','endurance','inertia','burden','harbour','drag','the deep','the unknown'] 
   },
   { 
@@ -162,7 +166,7 @@ export const SYMBOL_RING = [
       scale: 1.2,
       nudgeY: -14
     },
-    primaryMeaning: 'Goodness', 
+    primaryMeaning: 'goodness', 
     secondaryMeanings: ['blessing','purity','conscience','mercy','guidance','forgiveness','hope','guardian','divinity','charity','spirituality','grace','virtue','salvation','kindness','faith','help','redemption','healing'] 
   },
   { 
@@ -177,7 +181,7 @@ export const SYMBOL_RING = [
       nudgeX: 6,
       scale: 1.3
     },
-    primaryMeaning: 'Protection', 
+    primaryMeaning: 'protection', 
     secondaryMeanings: ['defence','narrow vision','safety','duty','war','restraint','conformity','soldier','honour','authority','vigilance','chivalry','discipline','chastity','uniform','guardedness','obedience','vow','code'] 
   },
   { 
@@ -191,7 +195,7 @@ export const SYMBOL_RING = [
     preview: {
       scale: 1.2,
     },
-    primaryMeaning: 'Productive work', 
+    primaryMeaning: 'productive work', 
     secondaryMeanings: ['community','sweetness','cooperation','role hierarchy','matriarchy','wealth','royalty','sting','hive mind','dance','scouting','communication','collective mind','abundance','sacrifice','drones','belonging','swarm','fertility'] 
   },
   { 
@@ -204,7 +208,7 @@ export const SYMBOL_RING = [
     preview: {
       scale: 1.2,
     },
-    primaryMeaning: 'Night', 
+    primaryMeaning: 'night', 
     secondaryMeanings: ['change','reflection','dreams','phases','subconscious','magic','intuition','cold','pull','mystery','secrecy','the uncanny','illusion','cyclical','femininity','silence','return','silver','distance']
   },
   { 
@@ -219,7 +223,7 @@ export const SYMBOL_RING = [
       scale: 1.25,
       nudgeY: -12
     },
-    primaryMeaning: 'Femininity', 
+    primaryMeaning: 'femininity', 
     secondaryMeanings: ['empathy','dignity','gentleness','beauty','vanity','sanctuary','emotional intelligence','allure','grace','lust','patience','resolve','comfort','softness','nurture','devotion','modesty']
   },
   { 
@@ -237,7 +241,7 @@ export const SYMBOL_RING = [
       rotate: -30,
       nudgeX: 8
     },
-    primaryMeaning: 'Temptation', 
+    primaryMeaning: 'temptation', 
     secondaryMeanings: ['knowledge','choice','consequence','forbidden','regret','indulgence','growth','curiosity','sin','offer','reward','pleasure','nourishment','food','health','freshness','harvest','youth','autumn'],
   },
   { 
@@ -254,7 +258,7 @@ export const SYMBOL_RING = [
       scale: 1.12,
       nudgeY:-16
     },
-    primaryMeaning: 'Freedom', 
+    primaryMeaning: 'freedom', 
     secondaryMeanings: ['spring','message','omen','hope','spirit','flight','song','fragility','vision','escape','warning','perspective','the soul','transcendence','vulnerability','migration','divine message','travel','swiftness','the heavens'] 
   },
   { 
@@ -270,7 +274,7 @@ export const SYMBOL_RING = [
       scale: 1.4,
       nudgeX: 5
     },
-    primaryMeaning: 'Nourishment', 
+    primaryMeaning: 'nourishment', 
     secondaryMeanings: ['comfort','daily life','labour','survival','community','home','simplicity','family','craft','provision','hospitality','work','creation','tradition','trust','promise','sacrifice']
   },
   { 
@@ -287,7 +291,7 @@ export const SYMBOL_RING = [
       rotate: -135,
       nudgeY: 5
     },
-    primaryMeaning: 'Mechanical work', 
+    primaryMeaning: 'mechanical work', 
     secondaryMeanings: ['endurance','diligence','strength','routine','insignificance','labour','efficiency','organization','logistics','collective effort','conformity','industry','persistence','tedium','discipline'] 
   },
   { 
@@ -302,7 +306,7 @@ export const SYMBOL_RING = [
       scale: 1.3,
       nudgeY: 8
     },
-    primaryMeaning: 'Strength', 
+    primaryMeaning: 'strength', 
     secondaryMeanings: ['power','stamina','impulsivity','endurance','rage','untamable','aggression','charge','earth','cruelty','dominance','courage','groundedness','bluntness','steadfastness','uncoordination','large','heavy','danger']
   },
   { 
@@ -316,7 +320,7 @@ export const SYMBOL_RING = [
     preview: {
       nudgeY: -21
     },
-    primaryMeaning: 'Fire', 
+    primaryMeaning: 'fire', 
     secondaryMeanings: ['dim light','learning','guidance','remembrance','hope','solitude','devotion','mourning','study','revelation','time','mortality','warmth','comfort','ritual','secret','oath','sacrifice','darkness']
   },
   { 
@@ -330,7 +334,7 @@ export const SYMBOL_RING = [
     preview: {
       scale: 1.2,
     },
-    primaryMeaning: 'Wealth', 
+    primaryMeaning: 'wealth', 
     secondaryMeanings: ['success','hospitality','abundance','excess','harvest','reward','gluttony','autumn','bounty','security','comfort','generosity','community','charity','blessing','luck','sharing','overflow','indulgence']
   },
   { 
@@ -345,7 +349,7 @@ export const SYMBOL_RING = [
     preview: {
       scale: 1.3,
     },
-    primaryMeaning: 'Adaptation', 
+    primaryMeaning: 'adaptation', 
     secondaryMeanings: ['camouflage','overlooked','air','identity','inconsistency','versatility','self-preservation','evasion','imitation','opportunism','mask','misdirection','concealment','role','disguise','deception','survival']
   },
   { 
@@ -360,7 +364,7 @@ export const SYMBOL_RING = [
       scale: 0.9,
       nudgeY: -21
     },
-    primaryMeaning: 'Inspiration', 
+    primaryMeaning: 'inspiration', 
     secondaryMeanings: ['fate','chance','revelation','chaos','shock','disruption','impact','luck','violence','natural power','electricity','aftershock','storm','surprise','act of god','judgement','crisis','consequence']
   },
   { 
@@ -377,7 +381,7 @@ export const SYMBOL_RING = [
       rotate: -15,
       nudgeY: -4
     },
-    primaryMeaning: 'Playfulness', 
+    primaryMeaning: 'playfulness', 
     secondaryMeanings: ['water','succour','friendship','second chance','trust','recovery','aid','safe passage','companionship','intelligence','joy','freedom','guidance','deliverance','laughter','escort']
   },
   { 
@@ -392,7 +396,7 @@ export const SYMBOL_RING = [
       scale: 1.2,
       nudgeY: -8
     },
-    primaryMeaning: 'Control', 
+    primaryMeaning: 'control', 
     secondaryMeanings: ['haven','cultivation','order','restriction','boundaries','domestication','safety','nature','innocence','sanctuary','containment','permission','rules','gatekeeping','purity','shelter','privacy','seclusion','fragility','naivety','paradise','exclusion']
   },
   { 
@@ -407,7 +411,7 @@ export const SYMBOL_RING = [
       scale: 1.2,
       nudgeY: -6
     },
-    primaryMeaning: 'Travel', 
+    primaryMeaning: 'travel', 
     secondaryMeanings: ['politics','culture','travel','diplomacy','large scale','navigation','exploration','nations','trade','economy','law','sovereignty','fame','perspective','overview','influence','borders','interconnectedness'] 
   },
   { 
@@ -424,7 +428,7 @@ export const SYMBOL_RING = [
       nudgeY: -40,
       rotate: -30
     },
-    primaryMeaning: 'Action', 
+    primaryMeaning: 'action', 
     secondaryMeanings: ['fight','severance','justice','action','decisiveness','conflict','violence','conquest','duel','cutting through','domination','attack','danger','sacrifice','war']
   },
   { 
@@ -437,7 +441,7 @@ export const SYMBOL_RING = [
     preview: {
       scale: 1.2
     },
-    primaryMeaning: 'Guardianship', 
+    primaryMeaning: 'guardianship', 
     secondaryMeanings: ['treasure','watchfulness','vigilance','protection','territory','pride','royalty','courage','barrier','strength','mythical','ferocity','valor','defence','mythology']
   },
   { 
@@ -450,7 +454,7 @@ export const SYMBOL_RING = [
     preview: {
       scale: 1.35
     },
-    primaryMeaning: 'Freedom', 
+    primaryMeaning: 'freedom', 
     secondaryMeanings: ['journeys','speed','instinct','anxiety','drive','transportation','partnership','stamina','labour','burden','europe','nobility','trust','power','grace']
   },
   { 
@@ -465,7 +469,7 @@ export const SYMBOL_RING = [
       scale: 1.15,
       nudgeY: -9,
     },
-    primaryMeaning: 'Endurance', 
+    primaryMeaning: 'endurance', 
     secondaryMeanings: ['persistence','resilience','hardship','burden','long journey','preparedness','lasting','self-sufficiency','carry','drought','lack','pilgrimage','trade','slow and steady','perseverance','asia']
   },
   { 
@@ -481,7 +485,7 @@ export const SYMBOL_RING = [
       scale: 1.3,
       nudgeY: 7
     },
-    primaryMeaning: 'Memory', 
+    primaryMeaning: 'memory', 
     secondaryMeanings: ['wisdom','calm','strength','dignity','kindness','endurance','restraint','the past','grief','empathy','power','charity','continence','africa']
   },
   { 
@@ -496,7 +500,7 @@ export const SYMBOL_RING = [
     preview: {
       scale: 1.3,
     },
-    primaryMeaning: 'Ambush', 
+    primaryMeaning: 'ambush', 
     secondaryMeanings: ['predation','danger','stealth','pretense','ancient','patience','ferocity','territory','opportunism','deception','america','waiting','rapacity','calculation','cold blooded','survival']
   },
   { 
@@ -511,7 +515,7 @@ export const SYMBOL_RING = [
     preview: {
       scale: 1.3
     },
-    primaryMeaning: 'The future',
+    primaryMeaning: 'the future',
     secondaryMeanings: ['Beginnings','malleability','helplessness','potential','legacy','purity','growth','dependency','innocence','youth','vulnerability','hope','new life','uncertainty','nurture','freshness','naivety','learning','trust','family']
   },
   { 
@@ -527,7 +531,7 @@ export const SYMBOL_RING = [
       scale: 0.55,
       nudgeY: -43
     },
-    primaryMeaning: 'Accuracy',
+    primaryMeaning: 'accuracy',
     secondaryMeanings: ['planning','precision','evidence','proof','fact','measurement','calculation','engineering','design','logic','mathematics','science','drafting','reason','limits','boundary','circle','symmetry','balance','standard','rule']
   },
   { 
@@ -545,7 +549,7 @@ export const SYMBOL_RING = [
       nudgeY: -33,
       rotate: 20
     },
-    primaryMeaning: 'Entertainment', 
+    primaryMeaning: 'entertainment', 
     secondaryMeanings: ['music','performance','expression','harmony','art','celebration','seduction','charm','storytelling','tradition','fame','culture','creativity','emotion','love','merriment']
   },
   { 
@@ -560,7 +564,7 @@ export const SYMBOL_RING = [
       scale: 1.2,
       nudgeY: -12
     },
-    primaryMeaning: 'Growth', 
+    primaryMeaning: 'growth', 
     secondaryMeanings: ['shelter','history','roots','ancestry','stability','nature','seasons','lineage','origin','groundedness','life','renewal','interconnectedness','family','protection','house']
   },
   { 
@@ -576,7 +580,7 @@ export const SYMBOL_RING = [
       scale: 0.85,
       nudgeY: -29
     },
-    primaryMeaning: 'Masculine',
+    primaryMeaning: 'masculine',
     secondaryMeanings: ['responsibility','lust','protection','duty','pride','ego','impulse','appetite','dominance','family','strength','discipline','love','pragmatism','legacy']
   },
   { 
@@ -591,7 +595,7 @@ export const SYMBOL_RING = [
       scale: 0.9,
       nudgeY: -23,
     },
-    primaryMeaning: 'Wisdom',
+    primaryMeaning: 'wisdom',
     secondaryMeanings: ['perception','knowledge','insight','study','watchfulness','intuition','judgement','counsel','winter','fear','omen','solitude','silence','scholarship']
   }
 ];
