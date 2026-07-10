@@ -1,0 +1,253 @@
+@media (max-width: 900px) {
+  /* Mobile app layout */
+  #app {
+    grid-template-columns: 1fr;
+    grid-template-rows: var(--mobile-header-height) 1fr;
+    grid-template-areas:
+      "app-header"
+      "stage";
+  }
+
+  /* Compact header */
+  .app-header {
+    display: flex;
+    height: var(--mobile-header-height);
+    min-height: 0;
+    padding: 12px 16px;
+    align-items: center;
+
+    h1 {
+      line-height: 1;
+      transform: none;
+    }
+
+    p {
+      display: none;
+    }
+  }
+
+  /* Mobile-only actions and help */
+  .app-header-actions {
+    align-items: end;
+  }
+
+  #concentrate,
+  #reset {
+    display: none;
+  }
+
+  .desktop-instructions {
+    display: none;
+  }
+
+  .mobile-instructions {
+    display: block;
+  }
+
+  #howToPlayBtn {
+    width: 32px;
+    height: 32px;
+    min-width: 32px;
+    padding: 0;
+    display: grid;
+    place-items: center;
+    border-radius: 50%;
+    font-size: 15px;
+    font-weight: 600;
+    line-height: 1;
+  }
+
+  .modal-backdrop {
+    place-items: start center;
+    padding: 14px;
+  }
+
+  .how-to-play-modal {
+    max-height: calc(100dvh - 28px);
+    padding: 20px 18px;
+  }
+
+  /* Bottom panel shell */
+  .panel {
+    display: block;
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    top: auto;
+    z-index: 30;
+    height: var(--mobile-tabbar-height);
+    padding-right: 0;
+    background: rgba(5, 12, 26, 0.98);
+    border-top: 1px solid var(--border-strong);
+    border-radius: 0;
+    overflow: hidden;
+    transition: height 220ms ease;
+
+    &.mobile-panel-open {
+      height: calc(100dvh - var(--mobile-header-height));
+    }
+
+    &.mobile-panel-open .side-tab.active {
+      background: rgba(255,255,255,0.095);
+      color: rgba(255,255,255,0.98);
+    }
+
+    &:not(.mobile-panel-open) .panel-content {
+      padding: 0;
+      overflow: hidden;
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+    }
+
+    &:not(.mobile-panel-open) .side-tab.active {
+      background: transparent;
+      color: rgba(255,255,255,0.66);
+    }
+
+    &:not(.mobile-panel-open) .side-tab.active:hover {
+      background: rgba(255,255,255,0.06);
+      color: rgba(255,255,255,0.9);
+    }
+  }
+
+  /* Panel content and tab rail on mobile */
+  .panel-shell {
+    display: grid;
+    grid-template-columns: 1fr;
+    grid-template-rows: minmax(0, 1fr) var(--mobile-tabbar-height);
+    height: 100%;
+    min-height: 0;
+  }
+
+  /* Content column */
+  .panel-content {
+    grid-column: 1;
+    grid-row: 1;
+    min-width: 0;
+    min-height: 0;
+    padding: 16px;
+    border-right: 0;
+    overflow-y: auto;
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+    transition: opacity 120ms ease;
+  }
+
+  /* Bottom tab bar */
+  .side-tabs {
+    grid-column: 1;
+    grid-row: 2;
+    position: static;
+    top: auto;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0;
+    align-content: stretch;
+    width: 100%;
+    height: var(--mobile-tabbar-height);
+    min-height: var(--mobile-tabbar-height);
+    padding: 0;
+    border-top: 1px solid rgba(255,255,255,0.08);
+    background: rgba(5, 12, 26, 0.98);
+  }
+
+  /* Mobile tab buttons */
+  .side-tab {
+    width: 100%;
+    min-width: 0;
+    min-height: 0;
+    height: var(--mobile-tabbar-height);
+    padding: 0;
+    font-size: 1.5em;
+    font-weight: 300;
+    letter-spacing: 0.015em;
+    display: grid;
+    place-items: center;
+    border: 0;
+    border-right: 1px solid rgba(255,255,255,0.08);
+    border-radius: 0;
+    background: transparent;
+    color: rgba(255,255,255,0.66);
+    box-shadow: none;
+    transform: none;
+
+    &.active {
+      background: rgba(255,255,255,0.095);
+      color: rgba(255,255,255,0.98);
+    }
+
+    &:hover {
+      background: rgba(255,255,255,0.06);
+      color: rgba(255,255,255,0.9);
+      box-shadow: none;
+      transform: none;
+    }
+
+    &:focus {
+      outline: none;
+    }
+
+    &:focus-visible {
+      outline: none;
+      box-shadow: inset 0 0 0 2px rgba(255,255,255,0.28);
+    }
+
+    &:last-child {
+      border-right: 0;
+    }
+  }
+
+  /* Tab label layout */
+  .side-tab-content {
+    position: static;
+    left: auto;
+    top: auto;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 6px;
+    transform: none;
+    white-space: nowrap;
+  }
+
+  /* Mobile stage sizing */
+  .stage {
+    padding: 12px 12px calc(var(--mobile-tabbar-height) + 12px);
+    width: 100%;
+    height: auto;
+    min-height: 0;
+    place-items: center;
+  }
+
+  /* Mobile face scaling */
+  .face {
+    --face-size: min(calc((100vw - 24px) / 1.1), calc((100cqh - var(--mobile-tabbar-height)) / 1.1), 700px);
+    margin-top: calc(var(--face-size) * 0.05);
+  }
+}
+
+@media (max-width: 900px) and (min-width: 551px) {
+  /* Keep symbol icons inside the face at transition widths without shrinking them */
+  .face {
+    --symbol-radius: calc((var(--face-size) / 2) - calc(var(--face-size) * 0.092));
+  }
+}
+
+@media (max-width: 500px) {
+  /* Small-screen typography tweaks */
+  .side-tab {
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: 0.01em;
+  }
+
+  .app-header h1 {
+    font-size: 20px;
+    letter-spacing: 0.025em;
+  }
+}

@@ -1,0 +1,398 @@
+﻿/*
+============================================================================================================
+Symbol-specific styles
+".symbol--" refer to those on the face of the alethiometer, whereas ".preview--" are found in the data tabs.
+============================================================================================================
+*/
+
+/* Hourglass */
+.symbol--hourglass {
+  --sym-scale: 0.65;
+  --sym-nudge-x: 0.0125em;
+  --sym-nudge-y: -0.2500em;
+}
+.preview--hourglass {
+  --preview-scale: 1.1;
+  --preview-nudge-y: -17%;
+}
+
+
+/* Sun */
+.symbol--sun {
+  --sym-scale: 1.2;
+  --sym-nudge-y: 0.2000em;
+}
+.preview--sun {
+  --preview-scale: 1.5;
+  --preview-nudge-y: 0%;
+}
+
+/* Alpha & Omega */
+.symbol--alpha-omega {
+  --sym-scale: 0.85;
+  --sym-rot: 3deg;
+  --sym-nudge-x: 0.0250em;
+  --sym-nudge-y: 0.1250em;
+}
+.preview--alpha-omega {
+  --preview-scale: 1.2;
+  --preview-nudge-y: -5%;
+}
+
+/* Marionette */
+.symbol--marionette {
+  --sym-scale: 0.6;
+  --sym-nudge-y: -0.3750em;
+}
+.preview--marionette {
+  --preview-scale: 0.95;
+  --preview-nudge-y: -24%;
+}
+
+/* Serpent */
+.symbol--serpent {
+  --sym-scale: 0.6;
+  --sym-nudge-y: -0.3750em;
+}
+.preview--serpent {
+  --preview-scale: 0.9;
+  --preview-nudge-y: -26%;
+}
+
+/* Cauldron */
+.symbol--cauldron {
+  --sym-scale: 0.85;
+  --sym-nudge-y: -0.1500em;
+}
+.preview--cauldron {
+  --preview-scale: 1.4;
+  --preview-nudge-y: -8%;
+}
+
+/* Anchor */
+.symbol--anchor {
+  --sym-scale: 1.2;
+  --sym-rot: 63deg;
+  --sym-nudge-y: 0.2500em;
+}
+.preview--anchor {
+  --preview-scale: 1.4;
+  --preview-rot: 70deg;
+  --preview-nudge-x: -8%;
+  --preview-nudge-y: 4%;
+}
+
+/* Angel */
+.symbol--angel {
+  --sym-scale: 0.7;
+  --sym-nudge-y: -0.2250em;
+}
+.preview--angel {
+  --preview-scale: 1.2;
+  --preview-nudge-y: -14%;
+}
+
+/* Helmet */
+.symbol--helmet {
+  --sym-scale: 0.9;
+  --sym-nudge-x: 0.0500em;
+  --sym-nudge-y: 0px;
+}
+.preview--helmet {
+  --preview-scale: 1.3;
+  --preview-nudge-x: 6%;
+  --preview-nudge-y: 0%;
+}
+
+/* Beehive */
+.symbol--beehive {
+  --sym-scale: 0.8;
+  --sym-nudge-y: -0.1000em;
+}
+.preview--beehive {
+  --preview-scale: 1.2;
+  --preview-nudge-y: 0%;
+}
+
+/* Moon */
+.symbol--moon {
+  --sym-scale: 1;
+  --sym-nudge-y: 0.1250em;
+}
+.preview--moon {
+  --preview-scale: 1.2;
+  --preview-nudge-y: 0%;
+}
+
+/* Madonna */
+.symbol--madonna {
+  --sym-scale: 0.75;
+  --sym-nudge-y: -0.1000em;
+}
+.preview--madonna {
+  --preview-scale: 1.25;
+  --preview-nudge-y: -12%;
+}
+
+/* Apple */
+.symbol--apple {
+  --sym-scale: 1.3;
+  --sym-rot: -25deg;
+  --sym-nudge-x: 0.0750em;
+  --sym-nudge-y: 0.1500em;
+}
+.preview--apple {
+  --preview-scale: 1.3;
+  --preview-rot: -30deg;
+  --preview-nudge-x: 8%;
+  --preview-nudge-y: 0%;
+}
+
+/* Bird */
+.symbol--bird {
+  --sym-scale: 0.75;
+  --sym-rot: 55deg;
+  --sym-nudge-y: -0.2000em;
+}
+.preview--bird {
+  --preview-scale: 1.12;
+  --preview-rot: 55deg;
+  --preview-nudge-y: -16%;
+}
+
+/* Bread */
+.symbol--bread {
+  --sym-scale: 1.2;
+  --sym-rot: -20deg;
+  --sym-nudge-y: 0.1000em;
+}
+.preview--bread {
+  --preview-scale: 1.4;
+  --preview-nudge-x: 5%;
+  --preview-nudge-y: 0%;
+}
+
+/* Ant */
+.symbol--ant {
+  --sym-scale: 1.2;
+  --sym-rot: -135deg;
+  --sym-nudge-y: 0.3500em;
+}
+.preview--ant {
+  --preview-scale: 1.4;
+  --preview-rot: -135deg;
+  --preview-nudge-y: 5%;
+}
+
+/* Bull */
+.symbol--bull {
+  --sym-scale: 1.1;
+  --sym-nudge-y: 0.2500em;
+}
+.preview--bull {
+  --preview-scale: 1.3;
+  --preview-nudge-y: 8%;
+}
+
+/* Candle */
+.symbol--candle {
+  --sym-scale: 0.65;
+  --sym-nudge-y: -0.2500em;
+}
+.preview--candle {
+  --preview-scale: 1;
+  --preview-nudge-y: -21%;
+}
+
+/* Cornucopia */
+.symbol--cornucopia {
+  --sym-scale: 1.1;
+  --sym-nudge-y: 0.2000em;
+}
+.preview--cornucopia {
+  --preview-scale: 1.2;
+  --preview-nudge-y: 0%;
+}
+
+/* Chameleon */
+.symbol--chameleon {
+  --sym-scale: 1.2;
+  --sym-nudge-x: 0.0500em;
+  --sym-nudge-y: 0.1750em;
+}
+.preview--chameleon {
+  --preview-scale: 1.3;
+  --preview-nudge-y: 0%;
+}
+
+/* Thunderbolt */
+.symbol--thunderbolt {
+  --sym-scale: 0.6;
+  --sym-nudge-y: -0.3250em;
+}
+.preview--thunderbolt {
+  --preview-scale: 0.9;
+  --preview-nudge-y: -21%;
+}
+
+/* Dolphin */
+.symbol--dolphin {
+  --sym-scale: 0.9;
+  --sym-rot: 20deg;
+  --sym-nudge-y: 0.0750em;
+}
+.preview--dolphin {
+  --preview-scale: 1.3;
+  --preview-rot: -15deg;
+  --preview-nudge-y: -4%;
+}
+
+/* Walled Garden */
+.symbol--walled-garden {
+  --sym-scale: 1.1;
+  --sym-nudge-y: 0.2000em;
+}
+.preview--walled-garden {
+  --preview-scale: 1.2;
+  --preview-nudge-y: -8%;
+}
+
+/* Globe */
+.symbol--globe {
+  --sym-scale: 0.75;
+  --sym-nudge-y: -0.0500em;
+}
+.preview--globe {
+  --preview-scale: 1.2;
+  --preview-nudge-y: -6%;
+}
+
+/* Sword */
+.symbol--sword {
+  --sym-scale: 0.4;
+  --sym-rot: -30deg;
+  --sym-nudge-y: -0.8750em;
+}
+.preview--sword {
+  --preview-scale: 0.6;
+  --preview-rot: -30deg;
+  --preview-nudge-y: -40%;
+}
+
+/* Griffin */
+.symbol--griffin {
+  --sym-scale: 1;
+  --sym-nudge-y: 0.2250em;
+}
+.preview--griffin {
+  --preview-scale: 1.2;
+  --preview-nudge-y: 0%;
+}
+
+/* Horse */
+.symbol--horse {
+  --sym-scale: 1;
+  --sym-nudge-y: 0.1750em;
+}
+.preview--horse {
+  --preview-scale: 1.35;
+  --preview-nudge-y: 0%;
+}
+
+/* Camel */
+.symbol--camel {
+  --sym-scale: 0.75;
+  --sym-nudge-y: -0.0500em;
+}
+.preview--camel {
+  --preview-scale: 1.15;
+  --preview-nudge-y: -9%;
+}
+
+/* Elephant */
+.symbol--elephant {
+  --sym-scale: 1.1;
+  --sym-nudge-x: 0.0250em;
+  --sym-nudge-y: 0.2500em;
+}
+.preview--elephant {
+  --preview-scale: 1.3;
+  --preview-nudge-y: 7%;
+}
+
+/* Crocodile */
+.symbol--crocodile {
+  --sym-scale: 1;
+  --sym-nudge-x: 0.1250em;
+  --sym-nudge-y: 0.3000em;
+}
+.preview--crocodile {
+  --preview-scale: 1.3;
+  --preview-nudge-y: 0%;
+}
+
+/* Baby */
+.symbol--baby {
+  --sym-scale: 1.1;
+  --sym-nudge-x: 0.1250em;
+  --sym-nudge-y: 0.3000em;
+}
+.preview--baby {
+  --preview-scale: 1.3;
+  --preview-nudge-y: 0%;
+}
+
+/* Compass */
+.symbol--compass {
+  --sym-scale: 0.35;
+  --sym-nudge-x: 0.0250em;
+  --sym-nudge-y: -1.1250em;
+}
+.preview--compass {
+  --preview-scale: 0.55;
+  --preview-nudge-y: -43%;
+}
+
+/* Lute */
+.symbol--lute {
+  --sym-scale: 0.55;
+  --sym-rot: 20deg;
+  --sym-nudge-x: 0.0750em;
+  --sym-nudge-y: -0.5500em;
+}
+.preview--lute {
+  --preview-scale: 0.7;
+  --preview-rot: 20deg;
+  --preview-nudge-y: -33%;
+}
+
+/* Tree */
+.symbol--tree {
+  --sym-scale: 0.8;
+  --sym-nudge-y: -0.0500em;
+}
+.preview--tree {
+  --preview-scale: 1.2;
+  --preview-nudge-y: -12%;
+}
+
+/* Father */
+.symbol--father {
+  --sym-scale: 0.56;
+  --sym-nudge-x: 0.0250em;
+  --sym-nudge-y: -0.4500em;
+}
+.preview--father {
+  --preview-scale: 0.85;
+  --preview-nudge-y: -29%;
+}
+
+/* Owl */
+.symbol--owl {
+  --sym-scale: 0.55;
+  --sym-nudge-y: -0.3500em;
+}
+.preview--owl {
+  --preview-scale: 0.9;
+  --preview-nudge-y: -23%;
+}

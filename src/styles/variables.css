@@ -1,0 +1,75 @@
+/*
+=============================================================
+Design tokens
+Shared colors, spacing, and theme values used across the app.
+=============================================================
+*/
+
+:root {
+  /* Layout dimensions */
+  --panel-width: 375px;
+  --header-height: 76px;
+
+  --mobile-header-height: 64px;
+  --mobile-tabbar-height: 54px;
+
+  /* Surface and color palette */
+  --colour-background:#050c1a;
+
+  --colour-surface:rgba(255,255,255,0.06);
+  --colour-surface-hover:rgba(255,255,255,0.085);
+  --colour-surface-strong:rgba(255,255,255,0.12);
+
+  --surface-1:rgba(255,255,255,0.08);
+  --surface-hover:rgba(255,255,255,0.20);
+  --surface-pressed:rgba(255,255,255,0.14);
+
+  --color-accent:rgba(255,190,120,0.9);
+  --color-accent-bright:rgba(255,225,190,0.96);
+  --accent-warm-soft:rgba(255,190,120,0.16);
+  --accent-warm-medium:rgba(255,190,120,0.30);
+  --accent-warm-strong:rgba(255,190,120,0.95);
+
+  --colour-text-primary:rgba(255,255,255,0.9);
+  --colour-text-secondary:rgba(255,255,255,0.72);
+  --colour-text-muted:rgba(255,255,255,0.58);
+
+  --text-strong-soft:rgba(255,255,255,0.92);
+
+  --colour-border:rgba(255,255,255,0.08);
+  --colour-border-strong:rgba(255,255,255,0.14);
+  --border-subtle:var(--colour-border);
+  --border-strong:var(--colour-border-strong);
+
+  --colour-card-background:rgba(255,255,255,0.06);
+  --colour-card-border:rgba(255,255,255,0.08);
+
+  --shadow-modal:0 24px 70px rgba(0,0,0,0.48);
+  --button-ring:0 0 0 1px rgba(255,255,255,0.08);
+
+  /* Typography */
+  --font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --letter-spacing-small:0.02em;
+
+  /* Motion and transitions */
+  --transition-fast:160ms ease;
+  --transition-standard:180ms ease;
+
+  /* Alethiometer geometry */
+  --face-size: min(calc(100cqw / 1.1), calc(100cqh / 1.1), 700px);
+  --face-center: 50%;
+  --symbol-size: calc(var(--face-size) * 0.069);
+  --symbol-radius: calc((var(--face-size) / 2) - calc(var(--face-size) * 0.086));
+  --symbol-rot-offset: 0deg;
+  --sym-scale: 1;
+  --sym-rot: 0deg;
+  --sym-nudge-x: 0px;
+  --sym-nudge-y: 0px;
+  --dial-art-width: calc(var(--face-size) * 0.145);
+  --dial-art-height: calc(var(--face-size) * 0.075);
+  --dial-radius: calc(50% + (var(--dial-art-height) * 0.45));
+  --dial-gap-x: calc(var(--face-size) * 0.007);
+
+  /* Interaction feedback */
+  --focus-outline:2px solid rgba(255,255,255,0.32);
+}

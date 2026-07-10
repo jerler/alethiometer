@@ -1,0 +1,168 @@
+/*
+=======================================================
+Alethiometer visuals
+Face, symbols, arms, dials, and spotlight presentation.
+=======================================================
+*/
+/* Face and symbol ring */
+.face {
+  width: var(--face-size);
+  aspect-ratio: 1 / 1;
+  position: relative;
+  user-select: none;
+  touch-action: pan-x pan-y pinch-zoom;
+
+  &::before {
+    content: "";
+    position: absolute;
+    inset: -5%;
+    background: url("../assets/face.png") center / contain no-repeat;
+    transform: translateY(clamp(-12px, calc(var(--face-size) * -0.014), -4px));
+    pointer-events: none;
+    z-index: 0;
+  }
+}
+
+.symbol-ring {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+}
+
+.symbol {
+  position: absolute;
+  left: var(--face-center);
+  top: var(--face-center);
+  width: var(--symbol-size);
+  height: var(--symbol-size);
+  font-size: var(--symbol-size);
+  
+  transform: rotate(calc(var(--deg) + var(--symbol-rot-offset))) translateY(calc(-1 * var(--symbol-radius))) translate(var(--sym-nudge-x), var(--sym-nudge-y)) translate(-50%, -50%);
+  transform-origin: 0 0;
+  display: grid;
+  place-items: center;
+  transition: filter 180ms ease, transform 180ms ease;
+
+  &.symbol-highlight {
+    z-index: 4;
+
+    img {
+      animation: symbolGoldenGlow 5600ms ease-out;
+    }
+  }
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    transform: rotate(var(--sym-rot)) scale(var(--sym-scale));
+    transform-origin: 50% 50%;
+    pointer-events: auto;
+    cursor: pointer;
+  }
+}
+
+@keyframes symbolGoldenGlow {
+  0% {
+    filter: drop-shadow(0 0 8px rgba(255, 215, 135, 0.95)) drop-shadow(0 0 22px rgba(255, 170, 70, 0.62));
+  }
+  28% {
+    filter: drop-shadow(0 0 8px rgba(255, 215, 135, 0.92)) drop-shadow(0 0 22px rgba(255, 170, 70, 0.58));
+  }
+  62% {
+    filter: drop-shadow(0 0 5px rgba(255, 205, 120, 0.62)) drop-shadow(0 0 15px rgba(255, 160, 70, 0.34));
+  }
+  100% {
+    filter: drop-shadow(0 0 1px rgba(255, 205, 120, 0.08)) drop-shadow(0 0 4px rgba(255, 160, 70, 0.04));
+  }
+}
+
+/* Arms and dials */
+.arm {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  transform-origin: var(--face-center) var(--face-center);
+  pointer-events: none;
+}
+
+.arm-svg {
+  position: absolute;
+  left: 78%;
+  top: var(--face-center);
+  width: 18%;
+  height: auto;
+  touch-action: none;
+  transform-origin: 0% 32%;
+  transform: translate(0, -50%) rotate(90deg);
+  filter: drop-shadow(2px 2px 2px rgba(0,0,0,0.65));
+  pointer-events: auto;
+  cursor: grab;
+
+  &:active {
+    cursor: grabbing;
+    filter: drop-shadow(4px 4px 4px rgba(0,0,0,0.8));
+  }
+}
+
+.arm-1 .arm-svg { left: 77%; width: 12%; top: 52.5%; }
+.arm-2 .arm-svg { left: 79%; width: 5.5%; top: 56%; }
+.arm-3 .arm-svg {
+  width: 3.2%;
+  left: 78.5%;
+  top: 57%;
+  cursor: default;
+  pointer-events: none;
+}
+
+.dial {
+  position: absolute;
+  width: var(--dial-art-width);
+  height: var(--dial-art-height);
+  left: calc(var(--face-center) + (var(--dial-radius) + var(--dial-gap, 0px)) * var(--dx) + var(--dial-nudge-x, 0px));
+  top: calc(var(--face-center) + (var(--dial-radius) + var(--dial-gap, 0px)) * var(--dy) + var(--dial-nudge-y, 0px));
+  transform: translate(-50%, -50%) rotate(var(--dial-art-rot, 0deg));
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+  z-index: 3;
+
+  &:active {
+    cursor: grabbing;
+  }
+}
+
+.dial-0 {
+  --dx: 0;
+  --dy: -1;
+  --dial-nudge-x: calc(var(--face-size) * -0.003);
+  --dial-nudge-y: calc(var(--face-size) * -0.009);
+  --dial-gap: calc(var(--face-size) * -0.007);
+  --dial-art-rot: -28deg;
+}
+
+.dial-1 {
+  --dx: 0.866;
+  --dy: 0.5;
+  --dial-gap: var(--dial-gap-x);
+  --dial-nudge-x: calc(var(--face-size) * 0.016);
+  --dial-nudge-y: calc(var(--face-size) * -0.014);
+  --dial-art-rot: 90deg;
+}
+
+.dial-2 {
+  --dx: -0.866;
+  --dy: 0.5;
+  --dial-gap: var(--dial-gap-x);
+  --dial-nudge-x: calc(var(--face-size) * -0.013);
+  --dial-nudge-y: calc(var(--face-size) * -0.016);
+  --dial-art-rot: -145deg;
+}
+
+.dial.selected {
+  outline: none;
+  filter: drop-shadow(0 0 5px rgba(255,255,255,0.32));
+}

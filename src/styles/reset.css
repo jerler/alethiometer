@@ -1,0 +1,40 @@
+/*
+==================================================
+Reset styles
+Normalizes browser defaults for a consistent base.
+==================================================
+*/
+/* Base box model and document sizing */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+/* Page root and overflow */
+html,
+body {
+  margin: 0;
+  min-height: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+/* Global document defaults */
+body {
+  background: #050c1a;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+/* Media and form normalization */
+img {
+  display: block;
+  max-width: 100%;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}

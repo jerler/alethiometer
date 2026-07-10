@@ -20,6 +20,8 @@ const concentrateBtn = document.getElementById("concentrate");
 const resetBtn = document.getElementById("reset");
 const spotlightPrimaryEl = document.getElementById("spotlightPrimary");
 const spotlightSecondaryEl = document.getElementById("spotlightSecondary");
+const panelConcentrateBtn = document.getElementById("panelConcentrate");
+const panelClearBtn = document.getElementById("panelClear");
 
 // Answer panel
 const panelNormalEl = document.getElementById("panelNormal");
@@ -93,6 +95,10 @@ const activeReading = {
 function normalizeDeg(d) {
   d %= 360;
   return d < 0 ? d + 360 : d;
+}
+
+function toTitleCase(text = "") {
+  return text.replace(/\b\p{L}/gu, (letter) => letter.toUpperCase());
 }
 
 function armDegForSymbol(symbol) {
@@ -495,13 +501,7 @@ function renderDictionarySymbol(symbol) {
 }
 
 function readingCardHtml({ symbol, symbolIndex }) {
-  const p = symbol.preview || {};
-
-  const scale = p.scale ?? 1;
-  const rotate = p.rotate ?? 0;
-  const nudgeX = p.nudgeX ?? 0;
-  const nudgeY = p.nudgeY ?? 0;
-  const fit = p.fit ?? "contain";
+  const previewClass = symbolCssClassName(symbol.name, "preview");
   const depth = formatInterpretationDepth(1);
 
   return `
@@ -513,14 +513,7 @@ function readingCardHtml({ symbol, symbolIndex }) {
       tabindex="0"
     >
       <div
-        class="reading-card-image-wrap"
-        style="
-          --card-scale: ${scale};
-          --card-rot: ${rotate}deg;
-          --card-nudge-x: ${nudgeX}%;
-          --card-nudge-y: ${nudgeY}%;
-          --card-fit: ${fit};
-        "
+        class="reading-card-image-wrap${previewClass ? ` ${previewClass}` : ""}"
       >
         <img
           class="reading-card-image"
@@ -815,6 +808,20 @@ function escapeHtml(str) {
     .replaceAll("'", "&#039;");
 }
 
+function toKebabCase(value = "") {
+  return String(value)
+    .normalize("NFKD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/(^-|-$)/g, "");
+}
+
+function symbolCssClassName(symbolName, base = "symbol") {
+  const slug = toKebabCase(symbolName);
+  return slug ? `${base}--${slug}` : "";
+}
+
 // ---- Symbols ring ----
 function buildSymbols() {
   symbolRingEl.innerHTML = "";
@@ -823,25 +830,11 @@ function buildSymbols() {
 
     const el = document.createElement("div");
     el.className = "symbol";
+    const symbolClass = symbolCssClassName(s.name, "symbol");
+    if (symbolClass) el.classList.add(symbolClass);
     el.dataset.symbolDeg = String(s.deg);
     el.style.setProperty("--deg", `${s.deg}deg`);
     el.style.setProperty("--deg", `${s.deg}deg`);
-
-    const a = s.appearance || {};
-    if (a.scale != null) el.style.setProperty("--sym-scale", String(a.scale));
-    if (a.rotate != null) el.style.setProperty("--sym-rot", `${a.rotate}deg`);
-    if (a.opacity != null)
-      el.style.setProperty("--sym-opacity", String(a.opacity));
-
-    const BASE_SYMBOL_SIZE = 40;
-
-    if (a.nudgeX != null) {
-      el.style.setProperty("--sym-nudge-x", `${a.nudgeX / BASE_SYMBOL_SIZE}em`);
-    }
-
-    if (a.nudgeY != null) {
-      el.style.setProperty("--sym-nudge-y", `${a.nudgeY / BASE_SYMBOL_SIZE}em`);
-    }
 
     const img = document.createElement("img");
     img.src = s.iconUrl;
@@ -929,16 +922,88 @@ function randomInt(min, max) {
   return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
+function generateSymbolCount() {
+  const weights = [
+    { count: 1, weight: 8 },
+    { count: 2, weight: 16 },
+    { count: 3, weight: 22 },
+    { count: 4, weight: 18 },
+    { count: 5, weight: 8 },
+    { count: 6, weight: 2 },
+    { count: 7, weight: 2 },
+    { count: 8, weight: 1 },
+    { count: 9, weight: 1 },
+    { count: 10, weight: 1 },
+    { count: 11, weight: 1 },
+    { count: 12, weight: 1 },
+  ];
+
+  const totalWeight = weights.reduce((sum, item) => sum + item.weight, 0);
+  let roll = Math.random() * totalWeight;
+
+  for (const item of weights) {
+    roll -= item.weight;
+    if (roll <= 0) {
+      return item.count;
+    }
+  }
+
+  return 3; // fallback
+}
+
+function generateTurnCount() {
+  const weights = [
+    { turns: 3, weight: 15 },
+    { turns: 2, weight: 25 },
+    { turns: 1, weight: 25 },
+    { turns: 0, weight: 35 },
+  ];
+
+  const totalWeight = weights.reduce((sum, item) => sum + item.weight, 0);
+  let roll = Math.random() * totalWeight;
+
+  for (const item of weights) {
+    roll -= item.weight;
+
+    if (roll <= 0) {
+      return item.turns;
+    }
+  }
+
+  return 0;
+}
+
+function pickReadingSymbol(sequence) {
+  const allowDuplicateChance = 0.25;
+
+  let symbol;
+
+  do {
+    symbol = SYMBOL_RING[randomInt(0, SYMBOL_RING.length - 1)];
+
+    const alreadyUsed = sequence.some(
+      (entry) => entry.symbol.deg === symbol.deg
+    );
+
+    if (!alreadyUsed || Math.random() < allowDuplicateChance) {
+      return symbol;
+    }
+
+  } while (true);
+}
+
 function generateAnswerSequence() {
-  let remainingTurns = randomInt(1, 12);
+  const symbolCount = generateSymbolCount();
   const sequence = [];
 
-  while (remainingTurns > 0) {
-    const turns = randomInt(1, Math.min(3, remainingTurns));
-    const symbol = SYMBOL_RING[randomInt(0, SYMBOL_RING.length - 1)];
+  for (let i = 0; i < symbolCount; i++) {
+    const symbol = pickReadingSymbol(sequence);
+    const turns = generateTurnCount();
 
-    sequence.push({ symbol, turns });
-    remainingTurns -= turns;
+    sequence.push({
+      symbol,
+      turns,
+    });
   }
 
   return sequence;
@@ -1122,7 +1187,7 @@ function updateSpotlight() {
   const s = symbolForArmDeg(state.armDeg[idx]);
   spotlightNameEl.textContent = s?.name ?? "—";
   spotlightPrimaryEl.textContent = s?.primaryMeaning
-    ? `${s.primaryMeaning}`
+    ? toTitleCase(s.primaryMeaning)
     : "—";
 
   const secs = Array.isArray(s?.secondaryMeanings)
@@ -1151,44 +1216,37 @@ async function applySymbolPreviewToMedia(symbol, mediaEl, imgEl) {
     imgEl.alt = ""
     imgEl.style.visibility = "hidden"
 
-    mediaEl.style.removeProperty("--prev-scale")
-    mediaEl.style.removeProperty("--prev-rot")
-    mediaEl.style.removeProperty("--prev-nudge-x")
-    mediaEl.style.removeProperty("--prev-nudge-y")
-    mediaEl.style.removeProperty("--prev-fit")
+    mediaEl.style.removeProperty("--preview-auto-scale")
+    mediaEl.style.removeProperty("--preview-scale")
+    mediaEl.style.removeProperty("--preview-rot")
+    mediaEl.style.removeProperty("--preview-nudge-x")
+    mediaEl.style.removeProperty("--preview-nudge-y")
+    mediaEl.style.removeProperty("--preview-fit")
 
     return
   }
 
-  const p = symbol.preview || {}
+  const previewClass = symbolCssClassName(symbol.name, "preview")
+  const previousClass = mediaEl.dataset.symbolPreviewClass
+  if (previousClass) mediaEl.classList.remove(previousClass)
 
   imgEl.src = symbol.iconUrl
   imgEl.alt = symbol.name
   imgEl.style.visibility = "visible"
 
-  mediaEl.style.setProperty("--prev-rot", `${p.rotate ?? 0}deg`)
-  mediaEl.style.setProperty("--prev-fit", p.fit ?? "contain")
-
-  const manualScale = p.scale ?? 1
-  const manualNX = p.nudgeX ?? 0
-  const manualNY = p.nudgeY ?? 0
-  const useAuto = p.autoScale ?? true
-
-  if (!useAuto) {
-    mediaEl.style.setProperty("--prev-scale", String(manualScale))
-    mediaEl.style.setProperty("--prev-nudge-x", `${manualNX}%`)
-    mediaEl.style.setProperty("--prev-nudge-y", `${manualNY}%`)
-    return
+  if (previewClass) {
+    mediaEl.classList.add(previewClass)
+    mediaEl.dataset.symbolPreviewClass = previewClass
+  } else {
+    mediaEl.dataset.symbolPreviewClass = ""
   }
 
   const auto = await computeAutoPreview(symbol.iconUrl, {
-    alphaThreshold: p.alphaThreshold ?? 8,
-    targetFill: p.targetFill ?? 0.88,
+    alphaThreshold: 8,
+    targetFill: 0.88,
   })
 
-  mediaEl.style.setProperty("--prev-scale", String(auto.scale * manualScale))
-  mediaEl.style.setProperty("--prev-nudge-x", `${manualNX}%`)
-  mediaEl.style.setProperty("--prev-nudge-y", `${manualNY}%`)
+  mediaEl.style.setProperty("--preview-auto-scale", String(auto.scale))
 }
 
 // ---- Interactions ----
@@ -1360,6 +1418,7 @@ concentrateBtn.addEventListener("click", async () => {
     clearReadingAvailable()
     showReadingPanel()
   }
+  updatePanelButtons();
 
   const cardListEl = entry.querySelector(".reading-card-list");
   if (!cardListEl) return;
@@ -1373,7 +1432,8 @@ concentrateBtn.addEventListener("click", async () => {
         readingCardHtml({ symbol, symbolIndex })
       )
 
-      markReadingAvailable()
+      updatePanelButtons();
+      markReadingAvailable();
     },
 
     onDepthChange: ({ symbol, symbolIndex, depthLevel }) => {
@@ -1400,6 +1460,27 @@ function showReadingEmptyState() {
   `
 }
 
+panelConcentrateBtn?.addEventListener("click", () => {
+  concentrateBtn.click();
+  closeMobilePanel();
+});
+
+panelClearBtn?.addEventListener("click", () => {
+  cancelActiveReading({
+    clearAnswers: true,
+    returnToArms: false,
+  });
+  showReadingEmptyState();
+  clearReadingAvailable();
+  updatePanelButtons();
+});
+
+function updatePanelButtons() {
+  const hasReading = answersEl.querySelector(".reading-card") !== null;
+
+  panelClearBtn.hidden = !hasReading;
+}
+
 resetBtn.addEventListener('click', () => {
   cancelActiveReading({
     clearAnswers: true,
@@ -1414,6 +1495,7 @@ resetBtn.addEventListener('click', () => {
 
   showReadingEmptyState();
   clearReadingAvailable();
+  updatePanelButtons();
 });
 
 function handlePanelTabClick(tabName) {
@@ -1427,7 +1509,7 @@ function handlePanelTabClick(tabName) {
   const clickedActiveTab = clickedTab?.classList.contains("active")
 
   if (isMobileLayout() && clickedActiveTab && isMobilePanelOpen()) {
-    closeMobilePanel()
+    closeMobilePanel();
     return
   }
 
