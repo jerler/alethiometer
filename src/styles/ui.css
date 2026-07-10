@@ -94,34 +94,3 @@ Modal content and arm controls.
 
 
 
-/* Arm controls */
-.arm-control-row {
-  align-items: center;
-
-  label {
-    font-weight: 600;
-  }
-}
-
-
-
-/* Arm selector dropdown */
-.arm-symbol-select {
-  max-width: 160px;
-  padding: 6px 8px;
-  border-radius: 10px;
-  border: 1px solid rgba(255,255,255,0.14);
-  background: rgba(255,255,255,0.08);
-  color: rgba(255,255,255,0.92);
-  font: inherit;
-  cursor: pointer;
-
-  &:focus {
-    outline: 2px solid rgba(255,255,255,0.35);
-    outline-offset: 2px;
-  }
-
-  option {
-    color: #111;
-  }
-}

@@ -6,7 +6,7 @@ Dictionary cards, reading cards, and panel actions.
 */
 
 /* Panel shell and scrollable content */
-.panel-shell {
+.panel {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 42px;
   align-items: stretch;
@@ -15,6 +15,8 @@ Dictionary cards, reading cards, and panel actions.
 }
 
 .panel-content {
+  grid-column: 1;
+  grid-row: 1;
   min-width: 0;
   min-height: 0;
   padding: 16px 16px 0px 16px;
@@ -41,24 +43,27 @@ Dictionary cards, reading cards, and panel actions.
   }
 }
 
-/* Shared panel view layout */
-.panel-view[hidden] {
+#panelArms[hidden],
+#panelReading[hidden],
+#panelDictionary[hidden] {
   display: none;
 }
 
-.panel-reading {
+#panelReading {
   display: grid;
   gap: 12px;
   min-height: 0;
 }
 
-.panel-dictionary {
+#panelDictionary {
   display: grid;
   gap: 12px;
 }
 
 /* Tab rail and tabs */
 .side-tabs {
+  grid-column: 2;
+  grid-row: 1;
   position: sticky;
   top: 0;
   display: grid;
@@ -101,17 +106,14 @@ Dictionary cards, reading cards, and panel actions.
   display: inline-flex;
   align-items: center;
   gap: 6px;
+  line-height: 1;
   white-space: nowrap;
   transform: translate(-50%, -50%) rotate(90deg);
   transform-origin: center;
 }
 
 /* Tab state indicators */
-.side-tab-label {
-  line-height: 1;
-}
-
-.side-tab-dot {
+.side-tab-content > .tab-dot {
   width: 7px;
   height: 7px;
   flex: 0 0 auto;
@@ -120,7 +122,7 @@ Dictionary cards, reading cards, and panel actions.
   visibility: hidden;
 }
 
-.side-tab.has-reading:not(.active) .side-tab-dot {
+.side-tab.has-reading:not(.active) .side-tab-content > .tab-dot {
   visibility: visible;
 }
 
@@ -131,7 +133,7 @@ Dictionary cards, reading cards, and panel actions.
 }
 
 /* Symbol list and spotlight */
-.symbols {
+#symbols {
   padding: 10px;
   border-radius: 12px;
   background: var(--colour-card-background);
@@ -147,8 +149,6 @@ Dictionary cards, reading cards, and panel actions.
 }
 
 .symbol-row:last-child { border-bottom: 0; }
-
-.symbol-name { font-weight: 600; }
 
 .spotlight {
   margin: 12px 0px;
@@ -189,7 +189,7 @@ Dictionary cards, reading cards, and panel actions.
   opacity: 0.8;
 }
 
-.spotlight-name {
+#spotlightName {
   font-weight: 700;
   font-size: 16px;
   line-height: 1.2;
@@ -237,8 +237,76 @@ Dictionary cards, reading cards, and panel actions.
   }
 }
 
+/* Arm controls */
+.arm-control-row {
+  flex-wrap: wrap;
+  align-items: center;
+
+  label {
+    font-weight: 600;
+    flex: 1 1 auto;
+  }
+
+  .arm-symbol-select {
+    flex: 0 0 auto;
+  }
+}
+
+.arm-describe-button {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+
+  &:focus {
+    position: static;
+    flex: 1 0 100%;
+    width: 100%;
+    height: auto;
+    margin: 4px 0 0;
+    padding: 8px 10px;
+    overflow: visible;
+    clip-path: none;
+    white-space: normal;
+    border-radius: 10px;
+    border: 1px solid rgba(255,255,255,0.12);
+    background: rgba(255,255,255,0.06);
+    color: rgba(255,255,255,0.9);
+    font-size: 12px;
+    font-weight: 600;
+    text-align: left;
+    outline: var(--focus-outline);
+    outline-offset: 2px;
+  }
+}
+
+
+
+/* Arm selector dropdown */
+.arm-symbol-select {
+  max-width: 160px;
+  padding: 6px 8px;
+  border-radius: 10px;
+  border: 1px solid rgba(255,255,255,0.14);
+  background: rgba(255,255,255,0.08);
+  color: rgba(255,255,255,0.92);
+  font: inherit;
+  cursor: pointer;
+
+  &:focus {
+    outline: 2px solid rgba(255,255,255,0.35);
+    outline-offset: 2px;
+  }
+}
+
+
 /* Reading output */
-.reading-symbols {
+#answers {
   display: grid;
   gap: 10px;
   min-height: 0;
@@ -340,10 +408,11 @@ Dictionary cards, reading cards, and panel actions.
   background: var(--surface-1);
   color: var(--text-strong-soft);
   font: inherit;
+}
 
-  option {
-    color: #111;
-  }
+.dictionary-select option,
+.arm-symbol-select option {
+  color: #111;
 }
 
 .dictionary-card {
@@ -354,17 +423,6 @@ Dictionary cards, reading cards, and panel actions.
   display: grid;
   justify-items: center;
   gap: 12px;
-}
-
-.dictionary-image-wrap {
-  width: min(220px, 100%);
-  aspect-ratio: 1 / 1;
-  border-radius: 50%;
-  background: rgba(0,0,0,0.24);
-  border: 1px solid rgba(255,255,255,0.10);
-  display: grid;
-  place-items: center;
-  overflow: hidden;
 }
 
 .spotlight-media.dictionary-media {
@@ -405,6 +463,7 @@ Dictionary cards, reading cards, and panel actions.
 }
 
 .dictionary-label {
+  margin: 8px 0 0;
   font-size: 11px;
   font-weight: 800;
   letter-spacing: 0.08em;
@@ -412,18 +471,15 @@ Dictionary cards, reading cards, and panel actions.
   color: rgba(255,255,255,0.56);
 }
 
-.dictionary-primary {
-  font-size: 15px;
-  font-weight: 700;
-  color: rgba(255,255,255,0.92);
-}
-
 .dictionary-meanings {
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
   
-  & span {
+  & li {
     padding: 4px 8px;
     border-radius: 999px;
     background: rgba(255,255,255,0.075);

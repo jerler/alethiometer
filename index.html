@@ -7,9 +7,11 @@
   </head>
 
   <body>
+    <a id="skipToArms" class="skip-link" href="#panelArms">Skip to main content</a>
+
     <div id="app">
-      <header class="app-header">
-        <div class="app-header-text">
+      <header>
+        <div>
           <h1>Alethiometer</h1>
           <p>
             Ask your question with the three moveable arms. Double click the
@@ -17,12 +19,11 @@
           </p>
         </div>
 
-        <div class="app-header-actions">
+        <div class="header-actions">
           <button id="concentrate" type="button">Concentrate</button>
           <button id="reset" type="button">Reset</button>
           <button
             id="howToPlayBtn"
-            class="how-to-play-button"
             type="button"
             aria-label="How to play"
           >
@@ -30,19 +31,74 @@
           </button>
         </div>
       </header>
-      <aside class="panel" aria-label="Alethiometer arms and reading">
-        <div class="panel-shell">
+      <aside aria-label="Alethiometer arms and reading">
+        <div class="panel">
+          <div
+            class="side-tabs"
+            role="tablist"
+            aria-label="Alethiometer panel sections"
+          >
+            <button
+              id="armsTab"
+              class="side-tab active"
+              type="button"
+              role="tab"
+              aria-selected="true"
+              aria-controls="panelArms"
+              tabindex="0"
+            >
+              <span class="side-tab-content">
+                <span class="tab-dot" aria-hidden="true"></span>
+                <span>Arms</span>
+              </span>
+            </button>
+
+            <button
+              id="readingTab"
+              class="side-tab"
+              type="button"
+              role="tab"
+              aria-selected="false"
+              aria-controls="panelReading"
+              tabindex="-1"
+            >
+              <span class="side-tab-content">
+                <span class="tab-dot" aria-hidden="true"></span>
+                <span>Reading</span>
+              </span>
+            </button>
+
+            <button
+              id="dictionaryTab"
+              class="side-tab"
+              type="button"
+              role="tab"
+              aria-selected="false"
+              aria-controls="panelDictionary"
+              tabindex="-1"
+            >
+              <span class="side-tab-content">
+                <span class="tab-dot" aria-hidden="true"></span>
+                <span>Dictionary</span>
+              </span>
+            </button>
+          </div>
+
           <div class="panel-content">
             <div
-              id="panelNormal"
-              class="panel-view panel-normal"
+              id="panelArms"
               role="tabpanel"
               tabindex="0"
               aria-labelledby="armsTab"
+              aria-describedby="panelArmsDesc"
             >
-              <div class="symbols" id="symbols"></div>
+              <p id="panelArmsDesc" class="sr-only">
+                Arms controls. Choose symbols for the three question arms and then click concentrate.
+              </p>
 
-              <div class="spotlight" aria-label="Selected symbol">
+              <div id="symbols"></div>
+
+              <div class="spotlight" aria-hidden="true">
                 <div
                   id="spotlightMedia"
                   class="spotlight-media"
@@ -54,7 +110,7 @@
 
                 <div class="spotlight-meta">
                   <div class="spotlight-label">Selected</div>
-                  <div id="spotlightName" class="spotlight-name">—</div>
+                  <div id="spotlightName">—</div>
 
                   <div class="spotlight-label meanings-label">Meanings</div>
                   <div id="spotlightPrimary" class="spotlight-primary">—</div>
@@ -79,13 +135,17 @@
 
             <div
               id="panelReading"
-              class="panel-view panel-reading"
               role="tabpanel"
               tabindex="0"
               aria-labelledby="readingTab"
+              aria-describedby="panelReadingDesc"
               hidden
             >
-              <div id="answers" class="reading-symbols">
+              <p id="panelReadingDesc" class="sr-only">
+                Reading results. Review the symbols from your most recent reading. Select any icon card to open that symbol in the Dictionary tab.
+              </p>
+
+              <div id="answers">
                 <div class="reading-entry reading-empty">
                   <div class="reading-empty-title">No reading yet</div>
                   <div class="reading-empty-mark" aria-hidden="true">✦</div>
@@ -110,73 +170,29 @@
 
             <div
               id="panelDictionary"
-              class="panel-view panel-dictionary"
               role="tabpanel"
               tabindex="0"
               aria-labelledby="dictionaryTab"
+              aria-describedby="panelDictionaryDesc"
               hidden
             >
-              <label class="dictionary-select-label" for="dictionarySelect">
+              <p id="panelDictionaryDesc" class="sr-only">
+                Dictionary. Select a symbol to review its meanings.
+              </p>
+
+              <label class="sr-only" for="dictionarySelect">
                 Symbol
               </label>
 
               <select id="dictionarySelect" class="dictionary-select"></select>
 
-              <div id="dictionaryDetail" class="dictionary-detail"></div>
+              <div id="dictionaryDetail"></div>
             </div>
-          </div>
-
-          <div
-            class="side-tabs"
-            role="tablist"
-            aria-label="Alethiometer panel sections"
-          >
-            <button
-              id="armsTab"
-              class="side-tab active"
-              type="button"
-              role="tab"
-              aria-selected="true"
-              aria-controls="panelNormal"
-            >
-              <span class="side-tab-content">
-                <span class="side-tab-dot" aria-hidden="true"></span>
-                <span class="side-tab-label">Arms</span>
-              </span>
-            </button>
-
-            <button
-              id="readingTab"
-              class="side-tab"
-              type="button"
-              role="tab"
-              aria-selected="false"
-              aria-controls="panelReading"
-            >
-              <span class="side-tab-content">
-                <span class="side-tab-dot" aria-hidden="true"></span>
-                <span class="side-tab-label">Reading</span>
-              </span>
-            </button>
-
-            <button
-              id="dictionaryTab"
-              class="side-tab"
-              type="button"
-              role="tab"
-              aria-selected="false"
-              aria-controls="panelDictionary"
-            >
-              <span class="side-tab-content">
-                <span class="side-tab-dot" aria-hidden="true"></span>
-                <span class="side-tab-label">Dictionary</span>
-              </span>
-            </button>
           </div>
         </div>
       </aside>
 
-      <main class="stage">
+      <main>
         <div id="face" class="face" role="group" aria-label="Alethiometer face">
           <div class="symbol-ring" id="symbolRing"></div>
 
@@ -202,7 +218,7 @@
         </div>
       </main>
 
-      <div id="howToPlayModal" class="modal-backdrop" hidden>
+      <div id="howToPlayModal" hidden>
         <section
           class="how-to-play-modal"
           role="dialog"
@@ -210,7 +226,6 @@
           aria-labelledby="howToPlayTitle"
         >
           <button
-            id="howToPlayClose"
             class="modal-close-button"
             type="button"
             aria-label="Close how to play"
@@ -283,6 +298,8 @@
         </section>
       </div>
     </div>
+
+    <p id="a11yStatus" class="sr-only" role="status" aria-live="polite" aria-atomic="true"></p>
 
     <script type="module" src="/src/main.js"></script>
   </body>

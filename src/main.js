@@ -24,11 +24,12 @@ const panelConcentrateBtn = document.getElementById("panelConcentrate");
 const panelClearBtn = document.getElementById("panelClear");
 
 // Answer panel
-const panelNormalEl = document.getElementById("panelNormal");
+const panelArmsEl = document.getElementById("panelArms");
 const panelReadingEl = document.getElementById("panelReading");
 const answersEl = document.getElementById("answers");
 const armsTabBtn = document.getElementById("armsTab");
 const readingTabBtn = document.getElementById("readingTab");
+const sideTabsEl = document.querySelector(".side-tabs");
 
 // Dictionary Panel
 const panelDictionaryEl = document.getElementById("panelDictionary")
@@ -39,7 +40,9 @@ const dictionaryDetailEl = document.getElementById("dictionaryDetail")
 // Modal
 const howToPlayBtn = document.getElementById("howToPlayBtn")
 const howToPlayModal = document.getElementById("howToPlayModal")
-const howToPlayClose = document.getElementById("howToPlayClose")
+const howToPlayClose = document.querySelector(".modal-close-button")
+const skipToArmsLink = document.getElementById("skipToArms")
+const a11yStatusEl = document.getElementById("a11yStatus")
 
 // Spotlight elements (panel)
 const spotlightImgEl = document.getElementById("spotlightImg");
@@ -51,6 +54,7 @@ const WHEEL_SENSITIVITY_FINE = 0.015;
 const ANSWER_ARM_IDX = 3;
 
 let armSelects = [];
+let armDescribeButtons = [];
 
 // Attach SVGs
 const armSvgUrls = [arm0Url, arm1Url, arm2Url, arm3Url];
@@ -101,9 +105,18 @@ function toTitleCase(text = "") {
   return text.replace(/\b\p{L}/gu, (letter) => letter.toUpperCase());
 }
 
+function announceStatus(message) {
+  if (!a11yStatusEl || !message) return
+
+  a11yStatusEl.textContent = ""
+  requestAnimationFrame(() => {
+    a11yStatusEl.textContent = message
+  })
+}
+
 function showPanelTab(tabName) {
   const panels = {
-    arms: panelNormalEl,
+    arms: panelArmsEl,
     reading: panelReadingEl,
     dictionary: panelDictionaryEl,
   }
@@ -124,6 +137,7 @@ function showPanelTab(tabName) {
     const active = name === tabName
     tab.classList.toggle("active", active)
     tab.setAttribute("aria-selected", String(active))
+    tab.setAttribute("tabindex", active ? "0" : "-1")
   }
 
   if (tabName === "reading" && isReadingPanelActive()) {
@@ -313,16 +327,16 @@ function isMobileLayout() {
 
 function openMobilePanel() {
   if (!isMobileLayout()) return
-  panelDictionaryEl?.closest(".panel")?.classList.add("mobile-panel-open")
+  panelDictionaryEl?.closest("aside")?.classList.add("mobile-panel-open")
 }
 
 function closeMobilePanel() {
-  panelDictionaryEl?.closest(".panel")?.classList.remove("mobile-panel-open")
+  panelDictionaryEl?.closest("aside")?.classList.remove("mobile-panel-open")
 }
 
 function isMobilePanelOpen() {
   return panelDictionaryEl
-    ?.closest(".panel")
+    ?.closest("aside")
     ?.classList.contains("mobile-panel-open")
 }
 
@@ -374,6 +388,11 @@ function buildDictionarySelect() {
 document.addEventListener("keydown", (e) => {
   const clockwiseKeys = ["ArrowRight", "ArrowDown"];
   const counterClockwiseKeys = ["ArrowLeft", "ArrowUp"];
+
+  // Respect controls that already use arrow keys (e.g. panel tabs).
+  if (e.defaultPrevented) {
+    return;
+  }
 
   if (
     !clockwiseKeys.includes(e.key) &&
@@ -433,7 +452,7 @@ function renderDictionarySymbol(symbol) {
       <div
         class="spotlight-media dictionary-media"
         role="img"
-        aria-label="${escapeHtml(symbol.name)} preview"
+        aria-label="${escapeHtml(symbolPreviewLabel(symbol))}"
       >
         <img class="dictionary-image" alt="" />
       </div>
@@ -444,44 +463,46 @@ function renderDictionarySymbol(symbol) {
         ${escapeHtml(symbol.primaryMeaning ?? "—")}
       </div>
 
-      <section class="dictionary-description-section">
-        <h3 class="sr-only">Description</h3>
+      <section class="dictionary-description-section" aria-labelledby="dictionaryDescriptionLabel">
+        <h3 id="dictionaryDescriptionLabel" class="sr-only">Description</h3>
         <p>${escapeHtml(description)}</p>
       </section>
 
-      <section class="dictionary-section">
-        <div class="dictionary-label">Primary meanings</div>
-        <div class="dictionary-meanings">
+      <section class="dictionary-section" aria-labelledby="dictionaryPrimaryMeaningsLabel">
+        <h3 id="dictionaryPrimaryMeaningsLabel" class="dictionary-label">Primary meanings</h3>
+        <ul class="dictionary-meanings" aria-labelledby="dictionaryPrimaryMeaningsLabel">
           ${primaryMeanings
-            .map((meaning) => `<span>${escapeHtml(meaning)}</span>`)
-            .join("")}
-        </div>
+            .map((meaning) => `<li>${escapeHtml(meaning)}</li>`)
+            .join("") || "<li>None listed</li>"}
+        </ul>
       </section>
 
-      <section class="dictionary-section">
-        <div class="dictionary-label">Secondary meanings</div>
-        <div class="dictionary-meanings">
+      <section class="dictionary-section" aria-labelledby="dictionarySecondaryMeaningsLabel">
+        <h3 id="dictionarySecondaryMeaningsLabel" class="dictionary-label">Secondary meanings</h3>
+        <ul class="dictionary-meanings" aria-labelledby="dictionarySecondaryMeaningsLabel">
           ${secondaryMeaningsGroup
-            .map((meaning) => `<span>${escapeHtml(meaning)}</span>`)
+            .map((meaning) => `<li>${escapeHtml(meaning)}</li>`)
             .join("")}
-        </div>
+            ${secondaryMeaningsGroup.length === 0 ? "<li>None listed</li>" : ""}
+        </ul>
       </section>
 
-      <section class="dictionary-section dictionary-deep-section">
-        <div class="dictionary-label">Deep meanings</div>
-        <div class="dictionary-meanings dictionary-deep-meanings">
+      <section class="dictionary-section dictionary-deep-section" aria-labelledby="dictionaryDeepMeaningsLabel">
+        <h3 id="dictionaryDeepMeaningsLabel" class="dictionary-label">Deep meanings</h3>
+        <ul class="dictionary-meanings dictionary-deep-meanings" aria-labelledby="dictionaryDeepMeaningsLabel">
           ${deepMeaningsGroup
             .map((meaning, i) => {
               const opacity = Math.max(0.16, 0.8 - i * 0.08)
 
               return `
-                <span style="opacity: ${opacity}">
+                <li style="opacity: ${opacity}">
                   ${escapeHtml(meaning)}
-                </span>
+                </li>
               `
             })
             .join("")}
-        </div>
+            ${deepMeaningsGroup.length === 0 ? "<li>None listed</li>" : ""}
+        </ul>
       </section>
     </article>
   `
@@ -495,6 +516,8 @@ function renderDictionarySymbol(symbol) {
 function readingCardHtml({ symbol, symbolIndex }) {
   const previewClass = symbolCssClassName(symbol.name, "preview");
   const depth = formatInterpretationDepth(1);
+  const primaryMeaning = symbol.primaryMeaning || "No primary meaning listed";
+  const cardA11yLabel = `Icon ${symbolIndex + 1} - ${symbol.name} - primary meaning: ${primaryMeaning}. Press Enter or Space to view this symbol in the dictionary.`;
 
   return `
     <div
@@ -503,6 +526,7 @@ function readingCardHtml({ symbol, symbolIndex }) {
       data-symbol-deg="${symbol.deg}"
       role="button"
       tabindex="0"
+      aria-label="${escapeHtml(cardA11yLabel)}"
     >
       <div
         class="reading-card-image-wrap${previewClass ? ` ${previewClass}` : ""}"
@@ -510,7 +534,7 @@ function readingCardHtml({ symbol, symbolIndex }) {
         <img
           class="reading-card-image"
           src="${symbol.iconUrl}"
-          alt="${escapeHtml(symbol.name)}"
+          alt="${escapeHtml(symbolAltText(symbol))}"
         />
       </div>
 
@@ -646,6 +670,7 @@ function highlightSymbol(symbol, durationMs = 5600) {
 function buildArmSelectors() {
   symbolsEl.innerHTML = "";
   armSelects = [];
+  armDescribeButtons = [];
 
   for (let i = 0; i < 3; i++) {
     const row = document.createElement("div");
@@ -659,6 +684,20 @@ function buildArmSelectors() {
     select.id = `armSelect-${i}`;
     select.className = "arm-symbol-select";
     select.dataset.arm = String(i);
+
+    const describeBtn = document.createElement("button");
+    describeBtn.type = "button";
+    describeBtn.className = "arm-describe-button";
+    describeBtn.dataset.arm = String(i);
+    describeBtn.textContent = `Describe Arm ${i + 1} in dictionary`;
+    describeBtn.setAttribute("aria-label", `Describe Arm ${i + 1} in dictionary`);
+
+    describeBtn.addEventListener("click", () => {
+      const symbol = symbolForDeg(state.armDeg[i]);
+      if (!symbol) return;
+
+      openDictionaryForSymbol(symbol);
+    });
 
     for (const symbol of SYMBOL_RING) {
       const option = document.createElement("option");
@@ -698,9 +737,11 @@ function buildArmSelectors() {
     });
     row.appendChild(label);
     row.appendChild(select);
+    row.appendChild(describeBtn);
     symbolsEl.appendChild(row);
 
     armSelects.push(select);
+    armDescribeButtons.push(describeBtn);
   }
 }
 
@@ -708,6 +749,13 @@ function updateArmSelectors() {
   armSelects.forEach((select, i) => {
     const symbol = symbolForDeg(state.armDeg[i]);
     select.value = String(symbol.deg);
+
+    const describeBtn = armDescribeButtons[i];
+    if (!describeBtn) return;
+
+    const label = `Describe ${symbol.name} in dictionary`;
+    describeBtn.textContent = label;
+    describeBtn.setAttribute("aria-label", label);
   });
 }
 
@@ -800,6 +848,21 @@ function escapeHtml(str) {
     .replaceAll("'", "&#039;");
 }
 
+function symbolAltText(symbol) {
+  const altText = symbol?.altText
+
+  if (typeof altText === "string" && altText.trim()) {
+    return altText.trim()
+  }
+
+  return symbol?.name ?? ""
+}
+
+function symbolPreviewLabel(symbol) {
+  const alt = symbolAltText(symbol)
+  return alt ? `${alt} preview` : "Symbol preview"
+}
+
 function toKebabCase(value = "") {
   return String(value)
     .normalize("NFKD")
@@ -830,7 +893,7 @@ function buildSymbols() {
 
     const img = document.createElement("img");
     img.src = s.iconUrl;
-    img.alt = s.name;
+    img.alt = symbolAltText(s);
 
     el.appendChild(img);
     symbolRingEl.appendChild(el);
@@ -1223,8 +1286,12 @@ async function applySymbolPreviewToMedia(symbol, mediaEl, imgEl) {
   if (previousClass) mediaEl.classList.remove(previousClass)
 
   imgEl.src = symbol.iconUrl
-  imgEl.alt = symbol.name
+  imgEl.alt = symbolAltText(symbol)
   imgEl.style.visibility = "visible"
+
+  if (mediaEl.getAttribute("role") === "img") {
+    mediaEl.setAttribute("aria-label", symbolPreviewLabel(symbol))
+  }
 
   if (previewClass) {
     mediaEl.classList.add(previewClass)
@@ -1406,16 +1473,20 @@ concentrateBtn.addEventListener("click", async () => {
 
   if (isMobileLayout()) {
     markReadingAvailable()
+    readingTabBtn?.focus()
+    announceStatus("Reading is available in the Reading tab")
   } else {
     clearReadingAvailable()
     showReadingPanel()
+    panelReadingEl?.focus()
   }
+
   updatePanelButtons();
 
   const cardListEl = entry.querySelector(".reading-card-list");
   if (!cardListEl) return;
 
-  await playAnswerSequence(sequence, {
+  const readingCompleted = await playAnswerSequence(sequence, {
     onFirstLanding: ({ symbol, symbolIndex }) => {
       highlightSymbol(symbol)
 
@@ -1433,6 +1504,10 @@ concentrateBtn.addEventListener("click", async () => {
       updateReadingCardDepth(symbolIndex, depthLevel, entry);
     },
   });
+
+  if (readingCompleted) {
+    announceStatus("Reading finished")
+  }
 });
 
 function showReadingEmptyState() {
@@ -1512,6 +1587,55 @@ function handlePanelTabClick(tabName) {
   }
 }
 
+function tabNameForButton(btn) {
+  if (!btn) return null
+  if (btn === armsTabBtn) return "arms"
+  if (btn === readingTabBtn) return "reading"
+  if (btn === dictionaryTabBtn) return "dictionary"
+  return null
+}
+
+function moveTabFocus(step) {
+  const tabs = [armsTabBtn, readingTabBtn, dictionaryTabBtn].filter(Boolean)
+  const activeIdx = tabs.indexOf(document.activeElement)
+  if (tabs.length === 0 || activeIdx === -1) return
+
+  const nextIdx = (activeIdx + step + tabs.length) % tabs.length
+  const nextTab = tabs[nextIdx]
+  const nextName = tabNameForButton(nextTab)
+  if (!nextName) return
+
+  nextTab.focus()
+  handlePanelTabClick(nextName)
+}
+
+sideTabsEl?.addEventListener("keydown", (e) => {
+  if (!["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", "Home", "End"].includes(e.key)) {
+    return
+  }
+
+  e.preventDefault()
+
+  if (e.key === "ArrowUp" || e.key === "ArrowLeft") {
+    moveTabFocus(-1)
+    return
+  }
+
+  if (e.key === "ArrowDown" || e.key === "ArrowRight") {
+    moveTabFocus(1)
+    return
+  }
+
+  if (e.key === "Home") {
+    armsTabBtn?.focus()
+    handlePanelTabClick("arms")
+    return
+  }
+
+  dictionaryTabBtn?.focus()
+  handlePanelTabClick("dictionary")
+})
+
 armsTabBtn?.addEventListener("click", () => {
   handlePanelTabClick("arms")
 })
@@ -1522,6 +1646,13 @@ readingTabBtn?.addEventListener("click", () => {
 
 dictionaryTabBtn?.addEventListener("click", () => {
   handlePanelTabClick("dictionary")
+})
+
+skipToArmsLink?.addEventListener("click", (e) => {
+  e.preventDefault()
+  showPanelTab("arms")
+  openMobilePanel()
+  panelArmsEl?.focus()
 })
 
 answersEl?.addEventListener("click", (e) => {

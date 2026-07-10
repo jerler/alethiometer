@@ -9,7 +9,7 @@
   }
 
   /* Compact header */
-  .app-header {
+  #app header {
     display: flex;
     height: var(--mobile-header-height);
     min-height: 0;
@@ -27,13 +27,12 @@
   }
 
   /* Mobile-only actions and help */
-  .app-header-actions {
+  .header-actions {
     align-items: end;
-  }
 
-  #concentrate,
-  #reset {
-    display: none;
+    > button:not(#howToPlayBtn) {
+      display: none;
+    }
   }
 
   .desktop-instructions {
@@ -57,7 +56,7 @@
     line-height: 1;
   }
 
-  .modal-backdrop {
+  #howToPlayModal {
     place-items: start center;
     padding: 14px;
   }
@@ -68,7 +67,7 @@
   }
 
   /* Bottom panel shell */
-  .panel {
+  #app > aside {
     display: block;
     position: fixed;
     left: 0;
@@ -113,7 +112,7 @@
   }
 
   /* Panel content and tab rail on mobile */
-  .panel-shell {
+  .panel {
     display: grid;
     grid-template-columns: 1fr;
     grid-template-rows: minmax(0, 1fr) var(--mobile-tabbar-height);
@@ -216,7 +215,7 @@
   }
 
   /* Mobile stage sizing */
-  .stage {
+  #app > main {
     padding: 12px 12px calc(var(--mobile-tabbar-height) + 12px);
     width: 100%;
     height: auto;
@@ -246,7 +245,7 @@
     letter-spacing: 0.01em;
   }
 
-  .app-header h1 {
+  #app header h1 {
     font-size: 20px;
     letter-spacing: 0.025em;
   }

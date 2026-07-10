@@ -6,6 +6,29 @@ Global button defaults and utility classes.
 */
 
 /* Global button defaults */
+.skip-link {
+  position: absolute;
+  top: -64px;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  padding: 14px 16px;
+  border-bottom: 1px solid rgba(255,255,255,0.4);
+  background: rgba(8, 14, 28, 0.98);
+  color: rgba(255,255,255,0.96);
+  font-size: 14px;
+  font-weight: 700;
+  text-align: left;
+  text-decoration: none;
+  transition: top var(--transition-fast);
+
+  &:focus {
+    top: 0;
+    outline: var(--focus-outline);
+    outline-offset: -2px;
+  }
+}
+
 button {
   padding: 12px 20px;
   border-radius: 999px;
