@@ -1,5 +1,5 @@
 import "./style.css";
-import { symbolForArmDeg, SYMBOL_RING } from "./constants.js";
+import { symbolForDeg, SYMBOL_RING } from "./constants.js";
 import arm0Url from "./assets/arm-0.svg";
 import arm1Url from "./assets/arm-1.svg";
 import arm2Url from "./assets/arm-2.svg";
@@ -64,7 +64,7 @@ arms.forEach((armEl, i) => {
 // ---- State ----
 const state = {
   selectedArm: 0,
-  armDeg: [270, 30, 150, 320],
+  armDeg: [0, 120, 240, 50],
   drag: null, // { kind: 'arm'|'dial', idx, pointerId, startX, startY, startDeg }
 };
 
@@ -99,14 +99,6 @@ function normalizeDeg(d) {
 
 function toTitleCase(text = "") {
   return text.replace(/\b\p{L}/gu, (letter) => letter.toUpperCase());
-}
-
-function armDegForSymbol(symbol) {
-  return normalizeDeg(symbol.deg - 90);
-}
-
-function armDegForNorthDeg(northDeg) {
-  return normalizeDeg(northDeg - 90);
 }
 
 function showPanelTab(tabName) {
@@ -200,15 +192,15 @@ function degFromPointer(clientX, clientY) {
   const dx = clientX - cx;
   const dy = clientY - cy;
   const rad = Math.atan2(dy, dx);
-  return normalizeDeg(rad * (180 / Math.PI));
+  return normalizeDeg(rad * (180 / Math.PI) + 90);
 }
 
 function applyArm(idx) {
-  arms[idx].style.transform = `rotate(${normalizeDeg(state.armDeg[idx])}deg)`;
+  arms[idx].style.transform = `rotate(${normalizeDeg(state.armDeg[idx] - 90)}deg)`;
 }
 
 function currentQuestionSymbolDegs() {
-  return state.armDeg.slice(0, 3).map((deg) => symbolForArmDeg(deg).deg);
+  return state.armDeg.slice(0, 3).map((deg) => symbolForDeg(deg).deg);
 }
 
 function beginReadingRun() {
@@ -563,7 +555,7 @@ function easeInOutCubic(t) {
 
 function setAnswerArmRawDeg(deg) {
   state.armDeg[ANSWER_ARM_IDX] = deg;
-  arms[ANSWER_ARM_IDX].style.transform = `rotate(${deg}deg)`;
+  applyArm(ANSWER_ARM_IDX);
 }
 
 function animateAnswerArmToRaw(targetDeg, durationMs, readingId) {
@@ -679,7 +671,7 @@ function buildArmSelectors() {
       const symbolDeg = Number(e.target.value);
 
       setSelectedArm(i);
-      animateArmTo(i, armDegForNorthDeg(symbolDeg), 220);
+      animateArmTo(i, symbolDeg, 220);
     });
 
     select.addEventListener("keydown", (e) => {
@@ -714,7 +706,7 @@ function buildArmSelectors() {
 
 function updateArmSelectors() {
   armSelects.forEach((select, i) => {
-    const symbol = symbolForArmDeg(state.armDeg[i]);
+    const symbol = symbolForDeg(state.armDeg[i]);
     select.value = String(symbol.deg);
   });
 }
@@ -1032,7 +1024,7 @@ async function playAnswerSequence(
   let currentRawDeg = state.armDeg[ANSWER_ARM_IDX]
   for (let symbolIndex = 0; symbolIndex < sequence.length; symbolIndex++) {
     const { symbol, turns } = sequence[symbolIndex];
-    const symbolDeg = armDegForSymbol(symbol);
+    const symbolDeg = symbol.deg;
 
     // Pick a fresh direction for moving between symbols.
     // 1 = clockwise, -1 = counter-clockwise
@@ -1184,7 +1176,7 @@ function updateSpotlight() {
   if (idx == null || idx > 2) return;
   if (!spotlightMediaEl || !spotlightImgEl || !spotlightNameEl) return;
 
-  const s = symbolForArmDeg(state.armDeg[idx]);
+  const s = symbolForDeg(state.armDeg[idx]);
   spotlightNameEl.textContent = s?.name ?? "—";
   spotlightPrimaryEl.textContent = s?.primaryMeaning
     ? toTitleCase(s.primaryMeaning)
@@ -1489,9 +1481,9 @@ resetBtn.addEventListener('click', () => {
 
   setSelectedArm(0)
 
-  animateArmTo(0, 270, 220)
-  animateArmTo(1, 30, 220)
-  animateArmTo(2, 150, 220)
+  animateArmTo(0, 0, 220)
+  animateArmTo(1, 120, 220)
+  animateArmTo(2, 240, 220)
 
   showReadingEmptyState();
   clearReadingAvailable();
