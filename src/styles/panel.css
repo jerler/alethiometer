@@ -165,7 +165,7 @@ Dictionary cards, reading cards, and panel actions.
   --preview-rot: 0deg;
   --preview-nudge-x: 0px;
   --preview-nudge-y: 0px;
-  width: min(220px, 100%);
+  width: min(270px, 100%);
   aspect-ratio: 1 / 1;
   border-radius: 50%;
   background: rgba(0,0,0,0.25);

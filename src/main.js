@@ -1,5 +1,5 @@
 import "./style.css";
-import { symbolForDeg, SYMBOL_RING } from "./constants.js";
+import { SYMBOL_RING, symbolForDeg } from "./constants.js";
 import arm0Url from "./assets/arm-0.svg";
 import arm1Url from "./assets/arm-1.svg";
 import arm2Url from "./assets/arm-2.svg";
@@ -7,56 +7,65 @@ import arm3Url from "./assets/arm-3.svg";
 import dialFrame0Url from "./assets/dial-frame-0.png";
 import dialFrame1Url from "./assets/dial-frame-1.png";
 import dialFrame2Url from "./assets/dial-frame-2.png";
+import { createArmsController } from "./arms.js";
+import { createPanelUI } from "./panel-ui.js";
+import { createAnswerArmController } from "./answer-arm.js";
+import {
+  READING_TIMING,
+  generateAnswerSequence,
+  playAnswerSequence,
+} from "./reading-engine.js";
 
-const faceEl = document.getElementById("face");
+/* DOM References */
+const elements = {
+  faceEl: document.getElementById("face"),
+  symbolsEl: document.getElementById("symbols"),
+  symbolRingEl: document.getElementById("symbolRing"),
+  concentrateBtn: document.getElementById("concentrate"),
+  resetBtn: document.getElementById("reset"),
+  spotlightPrimaryEl: document.getElementById("spotlightPrimary"),
+  spotlightSecondaryEl: document.getElementById("spotlightSecondary"),
+  panelConcentrateBtn: document.getElementById("panelConcentrate"),
+  panelClearBtn: document.getElementById("panelClear"),
+  panelArmsEl: document.getElementById("panelArms"),
+  panelReadingEl: document.getElementById("panelReading"),
+  answersEl: document.getElementById("answers"),
+  armsTabBtn: document.getElementById("armsTab"),
+  readingTabBtn: document.getElementById("readingTab"),
+  sideTabsEl: document.querySelector(".side-tabs"),
+  panelDictionaryEl: document.getElementById("panelDictionary"),
+  dictionaryTabBtn: document.getElementById("dictionaryTab"),
+  dictionarySelectEl: document.getElementById("dictionarySelect"),
+  dictionaryDetailEl: document.getElementById("dictionaryDetail"),
+  howToPlayBtn: document.getElementById("howToPlayBtn"),
+  howToPlayModal: document.getElementById("howToPlayModal"),
+  howToPlayClose: document.querySelector(".modal-close-button"),
+  skipToArmsLink: document.getElementById("skipToArms"),
+  a11yStatusEl: document.getElementById("a11yStatus"),
+  spotlightImgEl: document.getElementById("spotlightImg"),
+  spotlightNameEl: document.getElementById("spotlightName"),
+  spotlightMediaEl: document.getElementById("spotlightMedia"),
+};
+
+/* Root Collections */
 const arms = Array.from(document.querySelectorAll(".arm"));
 const dials = Array.from(document.querySelectorAll(".dial"));
+
+/* Interaction Config */
 const DIAL_FRAME_URLS = [dialFrame0Url, dialFrame1Url, dialFrame2Url];
 const DIAL_FRAME_STEP_DEG = 10;
-const ARM_KEY_STEP_DEG = 360 / SYMBOL_RING.length;
-const symbolsEl = document.getElementById("symbols");
-const symbolRingEl = document.getElementById("symbolRing");
-const concentrateBtn = document.getElementById("concentrate");
-const resetBtn = document.getElementById("reset");
-const spotlightPrimaryEl = document.getElementById("spotlightPrimary");
-const spotlightSecondaryEl = document.getElementById("spotlightSecondary");
-const panelConcentrateBtn = document.getElementById("panelConcentrate");
-const panelClearBtn = document.getElementById("panelClear");
-
-// Answer panel
-const panelArmsEl = document.getElementById("panelArms");
-const panelReadingEl = document.getElementById("panelReading");
-const answersEl = document.getElementById("answers");
-const armsTabBtn = document.getElementById("armsTab");
-const readingTabBtn = document.getElementById("readingTab");
-const sideTabsEl = document.querySelector(".side-tabs");
-
-// Dictionary Panel
-const panelDictionaryEl = document.getElementById("panelDictionary")
-const dictionaryTabBtn = document.getElementById("dictionaryTab")
-const dictionarySelectEl = document.getElementById("dictionarySelect")
-const dictionaryDetailEl = document.getElementById("dictionaryDetail")
-
-// Modal
-const howToPlayBtn = document.getElementById("howToPlayBtn")
-const howToPlayModal = document.getElementById("howToPlayModal")
-const howToPlayClose = document.querySelector(".modal-close-button")
-const skipToArmsLink = document.getElementById("skipToArms")
-const a11yStatusEl = document.getElementById("a11yStatus")
-
-// Spotlight elements (panel)
-const spotlightImgEl = document.getElementById("spotlightImg");
-const spotlightNameEl = document.getElementById("spotlightName");
-const spotlightMediaEl = document.getElementById("spotlightMedia");
 const DIAL_SENSITIVITY = 0.75;
 const WHEEL_SENSITIVITY = 0.08;
 const WHEEL_SENSITIVITY_FINE = 0.015;
-const ANSWER_ARM_IDX = 3;
 
-let armSelects = [];
-let armDescribeButtons = [];
+/* App State */
+const state = {
+  selectedArm: 0,
+  armDeg: [0, 120, 240, 50],
+  drag: null,
+};
 
-// Attach SVGs
+/* Static Asset Wiring */
 const armSvgUrls = [arm0Url, arm1Url, arm2Url, arm3Url];
 arms.forEach((armEl, i) => {
   const img = armEl.querySelector(".arm-svg");
@@ -65,1632 +74,171 @@ arms.forEach((armEl, i) => {
   img.draggable = false;
 });
 
-// ---- State ----
-const state = {
-  selectedArm: 0,
-  armDeg: [0, 120, 240, 50],
-  drag: null, // { kind: 'arm'|'dial', idx, pointerId, startX, startY, startDeg }
-};
-
-const dialAnim = state.armDeg.slice(0, 3).map((deg) => ({
-  phase: 0,
-  lastArmDeg: deg,
-}));
-
-// wheel snap timers (for arms 0..2)
-const wheelSnapTimers = Array(3).fill(null);
-
-// idle drift for arm 3
-const idle = {
-  velocity: 30,
-  targetVel: -12,
-  nextChangeAt: 0,
-  lastTime: performance.now(),
-  pausedUntil: 0,
-  isReading: false,
-};
-
-const activeReading = {
-  id: 0,
-  questionSymbolDegs: null,
-};
-
-// ---- Helpers ----
-function normalizeDeg(d) {
-  d %= 360;
-  return d < 0 ? d + 360 : d;
-}
-
-function toTitleCase(text = "") {
-  return text.replace(/\b\p{L}/gu, (letter) => letter.toUpperCase());
-}
-
-function announceStatus(message) {
-  if (!a11yStatusEl || !message) return
-
-  a11yStatusEl.textContent = ""
-  requestAnimationFrame(() => {
-    a11yStatusEl.textContent = message
-  })
-}
-
-function showPanelTab(tabName) {
-  const panels = {
-    arms: panelArmsEl,
-    reading: panelReadingEl,
-    dictionary: panelDictionaryEl,
-  }
-
-  const tabs = {
-    arms: armsTabBtn,
-    reading: readingTabBtn,
-    dictionary: dictionaryTabBtn,
-  }
-
-  for (const [name, panel] of Object.entries(panels)) {
-    if (panel) panel.hidden = name !== tabName
-  }
-
-  for (const [name, tab] of Object.entries(tabs)) {
-    if (!tab) continue
-
-    const active = name === tabName
-    tab.classList.toggle("active", active)
-    tab.setAttribute("aria-selected", String(active))
-    tab.setAttribute("tabindex", active ? "0" : "-1")
-  }
-
-  if (tabName === "reading" && isReadingPanelActive()) {
-    clearReadingAvailable()
-  }
-}
-
-function showNormalPanel() {
-  showPanelTab("arms");
-}
-
-function showReadingPanel() {
-  showPanelTab("reading");
-}
-
-function showDictionaryPanel() {
-  showPanelTab("dictionary")
-}
-
-function shortestDiffDeg(from, to) {
-  return ((to - from + 540) % 360) - 180;
-}
-
-function isReadingPanelActive() {
-  if (!panelReadingEl || panelReadingEl.hidden) return false
-
-  if (isMobileLayout()) {
-    return isMobilePanelOpen()
-  }
-
-  return true
-}
-
-function markReadingAvailable() {
-  if (isReadingPanelActive()) return
-
-  readingTabBtn?.classList.add('has-reading')
-}
-
-function clearReadingAvailable() {
-  readingTabBtn?.classList.remove('has-reading')
-}
-
-function snapToSymbol(d) {
-  const step = 360 / SYMBOL_RING.length;
-  return Math.round(d / step) * step;
-}
-
-function setSelectedArm(idx) {
-  state.selectedArm = idx;
-  arms
-    .slice(0, 3)
-    .forEach((el, i) => el.classList.toggle("selected", i === idx));
-  dials.forEach((el, i) => el.classList.toggle("selected", i === idx));
-  updateSpotlight();
-}
-
-function getFaceCenter() {
-  const r = faceEl.getBoundingClientRect();
-  return { cx: r.left + r.width / 2, cy: r.top + r.height / 2 };
-}
-
-// pointer position -> degrees, 0 right, clockwise positive
-function degFromPointer(clientX, clientY) {
-  const { cx, cy } = getFaceCenter();
-  const dx = clientX - cx;
-  const dy = clientY - cy;
-  const rad = Math.atan2(dy, dx);
-  return normalizeDeg(rad * (180 / Math.PI) + 90);
-}
-
-function applyArm(idx) {
-  arms[idx].style.transform = `rotate(${normalizeDeg(state.armDeg[idx] - 90)}deg)`;
-}
-
-function currentQuestionSymbolDegs() {
-  return state.armDeg.slice(0, 3).map((deg) => symbolForDeg(deg).deg);
-}
-
-function beginReadingRun() {
-  activeReading.id += 1;
-  activeReading.questionSymbolDegs = currentQuestionSymbolDegs();
-
-  idle.isReading = true;
-  idle.velocity = 0;
-
-  return activeReading.id;
-}
-
-function isReadingRunActive(readingId) {
-  return idle.isReading && activeReading.id === readingId;
-}
-
-function finishReadingRun(readingId) {
-  if (!isReadingRunActive(readingId)) return;
-
-  activeReading.questionSymbolDegs = null;
-
-  idle.lastTime = performance.now();
-  idle.velocity = 0;
-  pickNewIdleTarget(performance.now());
-  idle.isReading = false;
-}
-
-function cancelActiveReading({
-  clearAnswers = true,
-  returnToArms = false,
-  pauseMs = READING_TIMING.pauseAfterFinalTurnMs,
-} = {}) {
-  if (!idle.isReading && !activeReading.questionSymbolDegs) return
-
-  const now = performance.now()
-
-  // Invalidate the currently running async reading.
-  activeReading.id += 1
-  activeReading.questionSymbolDegs = null
-
-  // Stop the reading animation, but do not immediately resume wandering.
-  idle.isReading = false
-  idle.velocity = 0
-  idle.lastTime = now
-  idle.pausedUntil = now + pauseMs
-
-  // Pick the next idle target for after the pause.
-  pickNewIdleTarget(now + pauseMs)
-
-  if (clearAnswers) {
-    showReadingEmptyState();
-  }
-
-  clearReadingAvailable()
-}
-
-function cancelReadingIfQuestionChanged() {
-  if (!idle.isReading || !activeReading.questionSymbolDegs) return;
-
-  const currentDegs = currentQuestionSymbolDegs();
-
-  const changed = currentDegs.some((deg, i) => {
-    return deg !== activeReading.questionSymbolDegs[i];
-  });
-
-  if (changed) {
-    cancelActiveReading({
-      clearAnswers: true,
-      returnToArms: false,
-    });
-  }
-}
-
-function mod(n, m) {
-  return ((n % m) + m) % m;
-}
-
-function setDialFrame(idx, frameIdx) {
-  const dialEl = dials[idx];
-  if (!dialEl) return;
-
-  const url = DIAL_FRAME_URLS[mod(frameIdx, DIAL_FRAME_URLS.length)];
-  dialEl.style.backgroundImage = `url("${url}")`;
-}
-
-function buildDials() {
-  dials.forEach((dialEl, idx) => {
-    dialEl.style.backgroundImage = `url("${DIAL_FRAME_URLS[0]}")`;
-    dialEl.style.backgroundSize = "contain";
-    dialEl.style.backgroundRepeat = "no-repeat";
-    dialEl.style.backgroundPosition = "center";
-  });
-}
-
-function updateDialFrames() {
-  for (let i = 0; i < 3; i++) {
-    const currentDeg = normalizeDeg(state.armDeg[i]);
-    const delta = shortestDiffDeg(dialAnim[i].lastArmDeg, currentDeg);
-
-    dialAnim[i].lastArmDeg = currentDeg;
-    dialAnim[i].phase += delta / DIAL_FRAME_STEP_DEG;
-
-    setDialFrame(i, Math.round(dialAnim[i].phase));
-  }
-}
-
-function isMobileLayout() {
-  return window.matchMedia("(max-width: 900px)").matches
-}
-
-function openMobilePanel() {
-  if (!isMobileLayout()) return
-  panelDictionaryEl?.closest("aside")?.classList.add("mobile-panel-open")
-}
-
-function closeMobilePanel() {
-  panelDictionaryEl?.closest("aside")?.classList.remove("mobile-panel-open")
-}
-
-function isMobilePanelOpen() {
-  return panelDictionaryEl
-    ?.closest("aside")
-    ?.classList.contains("mobile-panel-open")
-}
-
-function symbolByDeg(deg) {
-  return SYMBOL_RING.find((symbol) => symbol.deg === deg)
-}
-
-function buildDictionarySelect() {
-  if (!dictionarySelectEl) return
-
-  dictionarySelectEl.innerHTML = ""
-
-  for (const symbol of SYMBOL_RING) {
-    const option = document.createElement("option")
-    option.value = String(symbol.deg)
-    option.textContent = symbol.name
-    dictionarySelectEl.appendChild(option)
-  }
-
-  dictionarySelectEl.addEventListener("change", () => {
-    const symbol = symbolByDeg(Number(dictionarySelectEl.value))
-    if (symbol) renderDictionarySymbol(symbol)
-  })
-
-  dictionarySelectEl.addEventListener("keydown", (e) => {
-    const forwardKeys = ["ArrowDown", "ArrowRight"]
-    const backwardKeys = ["ArrowUp", "ArrowLeft"]
-
-    if (!forwardKeys.includes(e.key) && !backwardKeys.includes(e.key)) return
-
-    e.preventDefault()
-
-    const currentIndex = dictionarySelectEl.selectedIndex
-    const lastIndex = dictionarySelectEl.options.length - 1
-
-    let nextIndex
-
-    if (forwardKeys.includes(e.key)) {
-      nextIndex = currentIndex === lastIndex ? 0 : currentIndex + 1
-    } else {
-      nextIndex = currentIndex === 0 ? lastIndex : currentIndex - 1
-    }
-
-    dictionarySelectEl.selectedIndex = nextIndex
-    dictionarySelectEl.dispatchEvent(new Event("change", { bubbles: true }))
-  })
-}
-
-document.addEventListener("keydown", (e) => {
-  const clockwiseKeys = ["ArrowRight", "ArrowDown"];
-  const counterClockwiseKeys = ["ArrowLeft", "ArrowUp"];
-
-  // Respect controls that already use arrow keys (e.g. panel tabs).
-  if (e.defaultPrevented) {
-    return;
-  }
-
-  if (
-    !clockwiseKeys.includes(e.key) &&
-    !counterClockwiseKeys.includes(e.key)
-  ) {
-    return;
-  }
-
-  // Don't steal arrow keys while the user is using form controls.
-  const tagName = document.activeElement?.tagName?.toLowerCase();
-
-  if (
-    tagName === "input" ||
-    tagName === "textarea" ||
-    tagName === "select" ||
-    document.activeElement?.isContentEditable
-  ) {
-    return;
-  }
-
-  if (idle.isReading) return;
-
-  e.preventDefault();
-
-  const idx = state.selectedArm;
-
-  // Only the three question arms are keyboard-controlled.
-  if (idx == null || idx > 2) return;
-
-  const direction = clockwiseKeys.includes(e.key) ? 1 : -1;
-  const targetDeg = snapToSymbol(state.armDeg[idx] + direction * ARM_KEY_STEP_DEG);
-
-  animateArmTo(idx, targetDeg, 160);
+/* Action Delegates */
+let clearReadingAction = () => {};
+let runConcentrate = () => {};
+
+/* Module Setup */
+const panelUI = createPanelUI({
+  state,
+  elements,
+  SYMBOL_RING,
+  symbolForDeg,
+  onConcentrate: () => runConcentrate(),
+  onClearReading: () => clearReadingAction(),
 });
 
-function renderDictionarySymbol(symbol) {
-  if (!dictionaryDetailEl || !dictionarySelectEl) return
-
-  dictionarySelectEl.value = String(symbol.deg)
-
-  const secondaryMeanings = Array.isArray(symbol.secondaryMeanings)
-    ? symbol.secondaryMeanings.filter(Boolean)
-    : []
-
-  const primaryMeanings = [
-    symbol.primaryMeaning,
-    ...secondaryMeanings.slice(0, 3),
-  ].filter(Boolean)
-
-  const secondaryMeaningsGroup = secondaryMeanings.slice(3, 7)
-  const deepMeaningsGroup = secondaryMeanings.slice(7)
-
-  const description = symbol.description || "No description found"
-
-  dictionaryDetailEl.innerHTML = `
-    <article class="dictionary-card">
-      <div
-        class="spotlight-media dictionary-media"
-        role="img"
-        aria-label="${escapeHtml(symbolPreviewLabel(symbol))}"
-      >
-        <img class="dictionary-image" alt="" />
-      </div>
-
-      <div class="dictionary-name">${escapeHtml(symbol.name)}</div>
-
-      <div class="dictionary-primary-statement">
-        ${escapeHtml(symbol.primaryMeaning ?? "—")}
-      </div>
-
-      <section class="dictionary-description-section" aria-labelledby="dictionaryDescriptionLabel">
-        <h3 id="dictionaryDescriptionLabel" class="sr-only">Description</h3>
-        <p>${escapeHtml(description)}</p>
-      </section>
-
-      <section class="dictionary-section" aria-labelledby="dictionaryPrimaryMeaningsLabel">
-        <h3 id="dictionaryPrimaryMeaningsLabel" class="dictionary-label">Primary meanings</h3>
-        <ul class="dictionary-meanings" aria-labelledby="dictionaryPrimaryMeaningsLabel">
-          ${primaryMeanings
-            .map((meaning) => `<li>${escapeHtml(meaning)}</li>`)
-            .join("") || "<li>None listed</li>"}
-        </ul>
-      </section>
-
-      <section class="dictionary-section" aria-labelledby="dictionarySecondaryMeaningsLabel">
-        <h3 id="dictionarySecondaryMeaningsLabel" class="dictionary-label">Secondary meanings</h3>
-        <ul class="dictionary-meanings" aria-labelledby="dictionarySecondaryMeaningsLabel">
-          ${secondaryMeaningsGroup
-            .map((meaning) => `<li>${escapeHtml(meaning)}</li>`)
-            .join("")}
-            ${secondaryMeaningsGroup.length === 0 ? "<li>None listed</li>" : ""}
-        </ul>
-      </section>
-
-      <section class="dictionary-section dictionary-deep-section" aria-labelledby="dictionaryDeepMeaningsLabel">
-        <h3 id="dictionaryDeepMeaningsLabel" class="dictionary-label">Deep meanings</h3>
-        <ul class="dictionary-meanings dictionary-deep-meanings" aria-labelledby="dictionaryDeepMeaningsLabel">
-          ${deepMeaningsGroup
-            .map((meaning, i) => {
-              const opacity = Math.max(0.16, 0.8 - i * 0.08)
-
-              return `
-                <li style="opacity: ${opacity}">
-                  ${escapeHtml(meaning)}
-                </li>
-              `
-            })
-            .join("")}
-            ${deepMeaningsGroup.length === 0 ? "<li>None listed</li>" : ""}
-        </ul>
-      </section>
-    </article>
-  `
-
-  const mediaEl = dictionaryDetailEl.querySelector(".dictionary-media")
-  const imgEl = dictionaryDetailEl.querySelector(".dictionary-image")
-
-  applySymbolPreviewToMedia(symbol, mediaEl, imgEl)
-}
-
-function readingCardHtml({ symbol, symbolIndex }) {
-  const previewClass = symbolCssClassName(symbol.name, "preview");
-  const depth = formatInterpretationDepth(1);
-  const primaryMeaning = symbol.primaryMeaning || "No primary meaning listed";
-  const cardA11yLabel = `Icon ${symbolIndex + 1} - ${symbol.name} - primary meaning: ${primaryMeaning}. Press Enter or Space to view this symbol in the dictionary.`;
-
-  return `
-    <div
-      class="reading-card"
-      data-reading-card="${symbolIndex}"
-      data-symbol-deg="${symbol.deg}"
-      role="button"
-      tabindex="0"
-      aria-label="${escapeHtml(cardA11yLabel)}"
-    >
-      <div
-        class="reading-card-image-wrap${previewClass ? ` ${previewClass}` : ""}"
-      >
-        <img
-          class="reading-card-image"
-          src="${symbol.iconUrl}"
-          alt="${escapeHtml(symbolAltText(symbol))}"
-        />
-      </div>
-
-      <div class="reading-card-text">
-        <div class="reading-card-name">
-          ${escapeHtml(symbol.name)}
-        </div>
-
-        <div
-          class="reading-card-depth"
-          data-depth="${depth}"
-        >
-          ${depth}
-        </div>
-      </div>
-    </div>
-  `;
-}
-
-const READING_TIMING = {
-  swingToSymbolMs: 1000,
-  pauseOnFirstLandMs: 100,
-  msPerFullTurn: 1500,
-  pauseBetweenTurnsMs: 100,
-  pauseAfterFinalTurnMs: 500,
-  pauseBetweenSymbolsMinMs: 75,
-  pauseBetweenSymbolsMaxMs: 250,
-  finalPauseMs: 1000,
-};
-
-function wait(ms) {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
-
-function randomMs(min, max) {
-  return randomInt(min, max);
-}
-
-function easeInOutCubic(t) {
-  return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
-}
-
-function setAnswerArmRawDeg(deg) {
-  state.armDeg[ANSWER_ARM_IDX] = deg;
-  applyArm(ANSWER_ARM_IDX);
-}
-
-function animateAnswerArmToRaw(targetDeg, durationMs, readingId) {
-  return new Promise(resolve => {
-    const startTime = performance.now()
-    const startDeg = state.armDeg[ANSWER_ARM_IDX]
-    const diff = targetDeg - startDeg
-
-    function frame(now) {
-      if (readingId != null && !isReadingRunActive(readingId)) {
-        resolve(false)
-        return
-      }
-
-      const t = Math.min(1, (now - startTime) / durationMs)
-      const eased = easeInOutCubic(t)
-
-      setAnswerArmRawDeg(startDeg + diff * eased)
-
-      if (t < 1) {
-        requestAnimationFrame(frame)
-      } else {
-        setAnswerArmRawDeg(targetDeg)
-        resolve(true)
-      }
-    }
-
-    requestAnimationFrame(frame)
-  })
-}
-
-function openHowToPlay() {
-  if (!howToPlayModal) return
-  howToPlayModal.hidden = false
-  howToPlayClose?.focus()
-}
-
-function closeHowToPlay() {
-  if (!howToPlayModal) return
-  howToPlayModal.hidden = true
-  howToPlayBtn?.focus()
-}
-
-howToPlayBtn?.addEventListener("click", openHowToPlay)
-howToPlayClose?.addEventListener("click", closeHowToPlay)
-
-howToPlayModal?.addEventListener("click", (e) => {
-  if (e.target === howToPlayModal) {
-    closeHowToPlay()
-  }
-})
-
-document.addEventListener("keydown", (e) => {
-  if (e.key === "Escape" && howToPlayModal && !howToPlayModal.hidden) {
-    closeHowToPlay()
-  }
-})
-
-const symbolHighlightTimers = new WeakMap()
-
-function highlightSymbol(symbol, durationMs = 5600) {
-  if (!symbolRingEl || !symbol) return
-
-  const symbolEl = symbolRingEl.querySelector(
-    `.symbol[data-symbol-deg="${symbol.deg}"]`
-  )
-
-  if (!symbolEl) return
-
-  const existingTimer = symbolHighlightTimers.get(symbolEl)
-
-  if (existingTimer) {
-    window.clearTimeout(existingTimer)
-  }
-
-  symbolEl.classList.remove("symbol-highlight")
-  void symbolEl.offsetWidth
-  symbolEl.classList.add("symbol-highlight")
-
-  const timer = window.setTimeout(() => {
-    symbolEl.classList.remove("symbol-highlight")
-    symbolHighlightTimers.delete(symbolEl)
-  }, durationMs)
-
-  symbolHighlightTimers.set(symbolEl, timer)
-}
-
-function buildArmSelectors() {
-  symbolsEl.innerHTML = "";
-  armSelects = [];
-  armDescribeButtons = [];
-
-  for (let i = 0; i < 3; i++) {
-    const row = document.createElement("div");
-    row.className = "symbol-row arm-control-row";
-
-    const label = document.createElement("label");
-    label.htmlFor = `armSelect-${i}`;
-    label.textContent = `Arm ${i + 1}`;
-
-    const select = document.createElement("select");
-    select.id = `armSelect-${i}`;
-    select.className = "arm-symbol-select";
-    select.dataset.arm = String(i);
-
-    const describeBtn = document.createElement("button");
-    describeBtn.type = "button";
-    describeBtn.className = "arm-describe-button";
-    describeBtn.dataset.arm = String(i);
-    describeBtn.textContent = `Describe Arm ${i + 1} in dictionary`;
-    describeBtn.setAttribute("aria-label", `Describe Arm ${i + 1} in dictionary`);
-
-    describeBtn.addEventListener("click", () => {
-      const symbol = symbolForDeg(state.armDeg[i]);
-      if (!symbol) return;
-
-      openDictionaryForSymbol(symbol);
-    });
-
-    for (const symbol of SYMBOL_RING) {
-      const option = document.createElement("option");
-      option.value = String(symbol.deg);
-      option.textContent = symbol.name;
-      select.appendChild(option);
-    }
-
-    select.addEventListener("change", (e) => {
-      const symbolDeg = Number(e.target.value);
-
-      setSelectedArm(i);
-      animateArmTo(i, symbolDeg, 220);
-    });
-
-    select.addEventListener("keydown", (e) => {
-      const forwardKeys = ["ArrowDown", "ArrowRight"];
-      const backwardKeys = ["ArrowUp", "ArrowLeft"];
-
-      if (!forwardKeys.includes(e.key) && !backwardKeys.includes(e.key)) return;
-
-      e.preventDefault();
-
-      const currentIndex = select.selectedIndex;
-      const lastIndex = select.options.length - 1;
-
-      let nextIndex;
-
-      if (forwardKeys.includes(e.key)) {
-        nextIndex = currentIndex === lastIndex ? 0 : currentIndex + 1;
-      } else {
-        nextIndex = currentIndex === 0 ? lastIndex : currentIndex - 1;
-      }
-
-      select.selectedIndex = nextIndex;
-      select.dispatchEvent(new Event("change", { bubbles: true }));
-    });
-    row.appendChild(label);
-    row.appendChild(select);
-    row.appendChild(describeBtn);
-    symbolsEl.appendChild(row);
-
-    armSelects.push(select);
-    armDescribeButtons.push(describeBtn);
-  }
-}
-
-function updateArmSelectors() {
-  armSelects.forEach((select, i) => {
-    const symbol = symbolForDeg(state.armDeg[i]);
-    select.value = String(symbol.deg);
-
-    const describeBtn = armDescribeButtons[i];
-    if (!describeBtn) return;
-
-    const label = `Describe ${symbol.name} in dictionary`;
-    describeBtn.textContent = label;
-    describeBtn.setAttribute("aria-label", label);
-  });
-}
-
-function updateReadingCardDepth(symbolIndex, level, rootEl = document) {
-  const cardEl = rootEl.querySelector(`[data-reading-card="${symbolIndex}"]`);
-  if (!cardEl) return;
-
-  const depthEl = cardEl.querySelector(".reading-card-depth");
-  if (!depthEl) return;
-
-  const depth = formatInterpretationDepth(level);
-
-  depthEl.textContent = depth;
-  depthEl.dataset.depth = depth;
-}
-
-function render() {
-  for (let i = 0; i < state.armDeg.length; i++) {
-    state.armDeg[i] = normalizeDeg(state.armDeg[i]);
-  }
-
-  for (let i = 0; i < arms.length; i++) {
-    applyArm(i);
-  }
-
-  updateDialFrames();
-  updateArmSelectors();
-  updateSpotlight();
-  cancelReadingIfQuestionChanged();
-}
-
-function animateArmTo(idx, targetDeg, ms = 160) {
-  const start = performance.now();
-  const from = state.armDeg[idx];
-  const diff = shortestDiffDeg(from, targetDeg);
-
-  const easeOut = (t) => 1 - Math.pow(1 - t, 3);
-
-  function frame(now) {
-    const t = Math.min(1, (now - start) / ms);
-    state.armDeg[idx] = normalizeDeg(from + diff * easeOut(t));
-    render();
-    if (t < 1) requestAnimationFrame(frame);
-  }
-
-  requestAnimationFrame(frame);
-}
-
-function snapArm(idx) {
-  if (state.drag) return;
-  animateArmTo(idx, snapToSymbol(state.armDeg[idx]));
-}
-
-function randomDirection() {
-  return Math.random() < 0.5 ? -1 : 1;
-}
-
-// direction: 1 = clockwise, -1 = counter-clockwise
-function directedDiffToSymbol(fromDeg, symbolDeg, direction) {
-  const from = normalizeDeg(fromDeg);
-  const to = normalizeDeg(symbolDeg);
-
-  if (direction === 1) {
-    return (to - from + 360) % 360;
-  }
-
-  return -((from - to + 360) % 360);
-}
-
-function scheduleWheelSnap(idx, delayMs = 120) {
-  if (wheelSnapTimers[idx]) clearTimeout(wheelSnapTimers[idx]);
-  wheelSnapTimers[idx] = setTimeout(() => snapArm(idx), delayMs);
-}
-
-function armIdxFromWheelEvent(e) {
-  const el = document.elementFromPoint(e.clientX, e.clientY);
-  const svg = el?.closest?.(".arm-svg");
-  if (!svg) return null;
-  const armEl = svg.closest(".arm");
-  if (!armEl) return null;
-  return Number(armEl.dataset.arm);
-}
-
-function escapeHtml(str) {
-  return String(str)
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#039;");
-}
-
-function symbolAltText(symbol) {
-  const altText = symbol?.altText
-
-  if (typeof altText === "string" && altText.trim()) {
-    return altText.trim()
-  }
-
-  return symbol?.name ?? ""
-}
-
-function symbolPreviewLabel(symbol) {
-  const alt = symbolAltText(symbol)
-  return alt ? `${alt} preview` : "Symbol preview"
-}
-
-function toKebabCase(value = "") {
-  return String(value)
-    .normalize("NFKD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/(^-|-$)/g, "");
-}
-
-function symbolCssClassName(symbolName, base = "symbol") {
-  const slug = toKebabCase(symbolName);
-  return slug ? `${base}--${slug}` : "";
-}
-
-// ---- Symbols ring ----
-function buildSymbols() {
-  symbolRingEl.innerHTML = "";
-  for (const s of SYMBOL_RING) {
-    if (!s.iconUrl) continue;
-
-    const el = document.createElement("div");
-    el.className = "symbol";
-    const symbolClass = symbolCssClassName(s.name, "symbol");
-    if (symbolClass) el.classList.add(symbolClass);
-    el.dataset.symbolDeg = String(s.deg);
-    el.style.setProperty("--deg", `${s.deg}deg`);
-    el.style.setProperty("--deg", `${s.deg}deg`);
-
-    const img = document.createElement("img");
-    img.src = s.iconUrl;
-    img.alt = symbolAltText(s);
-
-    el.appendChild(img);
-    symbolRingEl.appendChild(el);
-  }
-}
-
-let lastSymbolTap = {
-  deg: null,
-  time: 0,
-}
-
-symbolRingEl?.addEventListener("pointerup", (e) => {
-  const symbolEl = e.target.closest(".symbol")
-  if (!symbolEl) return
-
-  const symbolDeg = Number(symbolEl.dataset.symbolDeg)
-  const symbol = symbolByDeg(symbolDeg)
-  if (!symbol) return
-
-  const now = performance.now()
-  const isSameSymbol = lastSymbolTap.deg === symbolDeg
-  const isDoubleTap = isSameSymbol && now - lastSymbolTap.time < 320
-
-  lastSymbolTap = {
-    deg: symbolDeg,
-    time: now,
-  }
-
-  if (!isDoubleTap) return
-
-  e.preventDefault()
-  e.stopPropagation()
-
-  openDictionaryForSymbol(symbol)
-})
-
-// ---- Idle arm (arm 3) ----
-function rand(min, max) {
-  return min + Math.random() * (max - min);
-}
-
-function pickNewIdleTarget(now) {
-  const dir = Math.random() < 0.55 ? -1 : 1;
-  const speed = Math.random() < 0.15 ? rand(18, 45) : rand(9, 16);
-  idle.targetVel = dir * speed;
-  idle.nextChangeAt = now + rand(900, 2600);
-}
-
-function stepIdle(dt) {
-  const chase = 2.2;
-  idle.velocity +=
-    (idle.targetVel - idle.velocity) * (1 - Math.exp(-chase * dt));
-  state.armDeg[ANSWER_ARM_IDX] = normalizeDeg(
-    state.armDeg[ANSWER_ARM_IDX] + idle.velocity * dt,
-  );
-}
-
-function idleLoop(now) {
-  if (idle.isReading) {
-    idle.lastTime = now;
-    requestAnimationFrame(idleLoop);
-    return;
-  }
-
-  const dt = Math.min(0.05, (now - idle.lastTime) / 1000);
-  idle.lastTime = now;
-
-  if (now < idle.pausedUntil) {
-    requestAnimationFrame(idleLoop);
-    return;
-  }
-
-  if (now >= idle.nextChangeAt) pickNewIdleTarget(now);
-
-  stepIdle(dt);
-  applyArm(ANSWER_ARM_IDX); // only update idle arm
-  requestAnimationFrame(idleLoop);
-}
-
-function randomInt(min, max) {
-  return Math.floor(Math.random() * (max - min + 1)) + min;
-}
-
-function generateSymbolCount() {
-  const weights = [
-    { count: 1, weight: 8 },
-    { count: 2, weight: 16 },
-    { count: 3, weight: 22 },
-    { count: 4, weight: 18 },
-    { count: 5, weight: 8 },
-    { count: 6, weight: 2 },
-    { count: 7, weight: 2 },
-    { count: 8, weight: 1 },
-    { count: 9, weight: 1 },
-    { count: 10, weight: 1 },
-    { count: 11, weight: 1 },
-    { count: 12, weight: 1 },
-  ];
-
-  const totalWeight = weights.reduce((sum, item) => sum + item.weight, 0);
-  let roll = Math.random() * totalWeight;
-
-  for (const item of weights) {
-    roll -= item.weight;
-    if (roll <= 0) {
-      return item.count;
-    }
-  }
-
-  return 3; // fallback
-}
-
-function generateTurnCount() {
-  const weights = [
-    { turns: 3, weight: 15 },
-    { turns: 2, weight: 25 },
-    { turns: 1, weight: 25 },
-    { turns: 0, weight: 35 },
-  ];
-
-  const totalWeight = weights.reduce((sum, item) => sum + item.weight, 0);
-  let roll = Math.random() * totalWeight;
-
-  for (const item of weights) {
-    roll -= item.weight;
-
-    if (roll <= 0) {
-      return item.turns;
-    }
-  }
-
-  return 0;
-}
-
-function pickReadingSymbol(sequence) {
-  const allowDuplicateChance = 0.25;
-
-  let symbol;
-
-  do {
-    symbol = SYMBOL_RING[randomInt(0, SYMBOL_RING.length - 1)];
-
-    const alreadyUsed = sequence.some(
-      (entry) => entry.symbol.deg === symbol.deg
-    );
-
-    if (!alreadyUsed || Math.random() < allowDuplicateChance) {
-      return symbol;
-    }
-
-  } while (true);
-}
-
-function generateAnswerSequence() {
-  const symbolCount = generateSymbolCount();
-  const sequence = [];
-
-  for (let i = 0; i < symbolCount; i++) {
-    const symbol = pickReadingSymbol(sequence);
-    const turns = generateTurnCount();
-
-    sequence.push({
-      symbol,
-      turns,
-    });
-  }
-
-  return sequence;
-}
-
-function formatInterpretationDepth(level) {
-  if (level <= 1) return "primary";
-  if (level === 2) return "secondary";
-  return "deep";
-}
-
-function openDictionaryForSymbol(symbol) {
-  if (!symbol) return
-
-  renderDictionarySymbol(symbol)
-  showDictionaryPanel()
-  openMobilePanel()
-}
-
-async function playAnswerSequence(
-  sequence,
-  { onFirstLanding = () => {}, onDepthChange = () => {} } = {},
-) {
-  const readingId = beginReadingRun()
-
-  let currentRawDeg = state.armDeg[ANSWER_ARM_IDX]
-  for (let symbolIndex = 0; symbolIndex < sequence.length; symbolIndex++) {
-    const { symbol, turns } = sequence[symbolIndex];
-    const symbolDeg = symbol.deg;
-
-    // Pick a fresh direction for moving between symbols.
-    // 1 = clockwise, -1 = counter-clockwise
-    const direction = randomDirection();
-
-    // Move to the target symbol using the chosen direction.
-    const firstLandingDeg =
-      currentRawDeg + directedDiffToSymbol(currentRawDeg, symbolDeg, direction);
-
-    const landed = await animateAnswerArmToRaw(
-      firstLandingDeg,
-      READING_TIMING.swingToSymbolMs,
-      readingId
-    )
-
-    if (!landed || !isReadingRunActive(readingId)) return false
-
-    onFirstLanding({ symbol, turns, symbolIndex })
-    await wait(
-      turns > 0
-        ? READING_TIMING.pauseOnFirstLandMs
-        : READING_TIMING.pauseAfterFinalTurnMs,
-    );
-
-    currentRawDeg = firstLandingDeg;
-
-    // Repeated turns on this same symbol keep the same direction.
-    for (let i = 0; i < turns; i++) {
-      const nextLandingDeg = currentRawDeg + direction * 360;
-      const isLastTurnForThisSymbol = i === turns - 1;
-
-      const completedTurn = await animateAnswerArmToRaw(
-        nextLandingDeg,
-        READING_TIMING.msPerFullTurn,
-        readingId
-      )
-
-      if (!completedTurn || !isReadingRunActive(readingId)) return false
-      currentRawDeg = nextLandingDeg;
-
-      const depthLevel = Math.min(i + 1, 3);
-      onDepthChange({ symbol, turns, symbolIndex, depthLevel });
-
-      await wait(
-        isLastTurnForThisSymbol
-          ? READING_TIMING.pauseAfterFinalTurnMs
-          : READING_TIMING.pauseBetweenTurnsMs,
-      );
-    }
-    if (symbolIndex < sequence.length - 1) {
-      await wait(
-        randomMs(
-          READING_TIMING.pauseBetweenSymbolsMinMs,
-          READING_TIMING.pauseBetweenSymbolsMaxMs,
-        ),
-      );
-    }
-  }
-
-  state.armDeg[ANSWER_ARM_IDX] = normalizeDeg(state.armDeg[ANSWER_ARM_IDX]);
-  applyArm(ANSWER_ARM_IDX);
-
-  await wait(READING_TIMING.finalPauseMs);
-
-  if (!isReadingRunActive(readingId)) return false
-
-  finishReadingRun(readingId)
-  return true;
-}
-
-// ---- Spotlight auto-scale (alpha bbox) ----
-const previewAutoCache = new Map(); // iconUrl -> { scale, nudgeX, nudgeY }
-
-async function computeAutoPreview(
-  iconUrl,
-  { alphaThreshold = 8, targetFill = 0.88 } = {},
-) {
-  if (previewAutoCache.has(iconUrl)) return previewAutoCache.get(iconUrl);
-
-  const img = new Image();
-  img.src = iconUrl;
-  await img.decode();
-
-  const w = img.naturalWidth || img.width;
-  const h = img.naturalHeight || img.height;
-
-  // Downscale for speed (still accurate enough)
-  const maxDim = 180;
-  const scaleDown = Math.min(1, maxDim / Math.max(w, h));
-  const cw = Math.max(1, Math.round(w * scaleDown));
-  const ch = Math.max(1, Math.round(h * scaleDown));
-
-  const canvas = document.createElement("canvas");
-  canvas.width = cw;
-  canvas.height = ch;
-  const ctx = canvas.getContext("2d", { willReadFrequently: true });
-  ctx.clearRect(0, 0, cw, ch);
-  ctx.drawImage(img, 0, 0, cw, ch);
-
-  const { data } = ctx.getImageData(0, 0, cw, ch);
-
-  let minX = cw,
-    minY = ch,
-    maxX = -1,
-    maxY = -1;
-  for (let y = 0; y < ch; y++) {
-    for (let x = 0; x < cw; x++) {
-      const a = data[(y * cw + x) * 4 + 3];
-      if (a > alphaThreshold) {
-        if (x < minX) minX = x;
-        if (y < minY) minY = y;
-        if (x > maxX) maxX = x;
-        if (y > maxY) maxY = y;
-      }
-    }
-  }
-
-  if (maxX < 0) {
-    const fallback = { scale: 1, nudgeX: 0, nudgeY: 0 };
-    previewAutoCache.set(iconUrl, fallback);
-    return fallback;
-  }
-
-  const bboxW = maxX - minX + 1;
-  const bboxH = maxY - minY + 1;
-
-  const bboxMax = Math.max(bboxW, bboxH);
-  const imgMax = Math.max(cw, ch);
-
-  // Scale so bbox occupies targetFill of the (downscaled) image box,
-  // then your CSS % sizing handles the rest.
-  const autoScale = (imgMax / bboxMax) * targetFill;
-
-  // auto-center (conservative)
-  const bboxCx = (minX + maxX) / 2;
-  const bboxCy = (minY + maxY) / 2;
-  const imgCx = (cw - 1) / 2;
-  const imgCy = (ch - 1) / 2;
-  const nudgeX = (imgCx - bboxCx) * 0.1;
-  const nudgeY = (imgCy - bboxCy) * 0.1;
-
-  const result = { scale: autoScale, nudgeX, nudgeY };
-  previewAutoCache.set(iconUrl, result);
-  return result;
-}
-
-function updateSpotlight() {
-  const idx = state.selectedArm;
-  if (idx == null || idx > 2) return;
-  if (!spotlightMediaEl || !spotlightImgEl || !spotlightNameEl) return;
-
-  const s = symbolForDeg(state.armDeg[idx]);
-  spotlightNameEl.textContent = s?.name ?? "—";
-  spotlightPrimaryEl.textContent = s?.primaryMeaning
-    ? toTitleCase(s.primaryMeaning)
-    : "—";
-
-  const secs = Array.isArray(s?.secondaryMeanings)
-    ? s.secondaryMeanings.filter(Boolean)
-    : [];
-  // Exaggerated trail: 80% then -10% each meaning, clamped
-  const startOpacity = 0.8;
-  const step = 0.1;
-  const minOpacity = 0.15;
-
-  spotlightSecondaryEl.innerHTML = secs
-    .map((txt, i) => {
-      const op = Math.max(minOpacity, startOpacity - i * step);
-      return `<span class="meaning-item" style="opacity:${op}">${escapeHtml(txt)}</span>`;
-    })
-    .join("");
-
-  applySymbolPreviewToMedia(s, spotlightMediaEl, spotlightImgEl)
-}
-
-async function applySymbolPreviewToMedia(symbol, mediaEl, imgEl) {
-  if (!symbol || !mediaEl || !imgEl) return
-
-  if (!symbol.iconUrl) {
-    imgEl.removeAttribute("src")
-    imgEl.alt = ""
-    imgEl.style.visibility = "hidden"
-
-    mediaEl.style.removeProperty("--preview-auto-scale")
-    mediaEl.style.removeProperty("--preview-scale")
-    mediaEl.style.removeProperty("--preview-rot")
-    mediaEl.style.removeProperty("--preview-nudge-x")
-    mediaEl.style.removeProperty("--preview-nudge-y")
-    mediaEl.style.removeProperty("--preview-fit")
-
-    return
-  }
-
-  const previewClass = symbolCssClassName(symbol.name, "preview")
-  const previousClass = mediaEl.dataset.symbolPreviewClass
-  if (previousClass) mediaEl.classList.remove(previousClass)
-
-  imgEl.src = symbol.iconUrl
-  imgEl.alt = symbolAltText(symbol)
-  imgEl.style.visibility = "visible"
-
-  if (mediaEl.getAttribute("role") === "img") {
-    mediaEl.setAttribute("aria-label", symbolPreviewLabel(symbol))
-  }
-
-  if (previewClass) {
-    mediaEl.classList.add(previewClass)
-    mediaEl.dataset.symbolPreviewClass = previewClass
-  } else {
-    mediaEl.dataset.symbolPreviewClass = ""
-  }
-
-  const auto = await computeAutoPreview(symbol.iconUrl, {
-    alphaThreshold: 8,
-    targetFill: 0.88,
-  })
-
-  mediaEl.style.setProperty("--preview-auto-scale", String(auto.scale))
-}
-
-// ---- Interactions ----
-
-// Arms 0..2 drag to rotate
-arms.slice(0, 3).forEach((armEl, idx) => {
-  armEl.addEventListener("pointerdown", (e) => {
-    e.preventDefault();
-    setSelectedArm(idx);
-    state.drag = { kind: "arm", idx, pointerId: e.pointerId };
-    armEl.setPointerCapture(e.pointerId);
-  });
-
-  armEl.addEventListener("pointermove", (e) => {
-    if (!state.drag || state.drag.kind !== "arm" || state.drag.idx !== idx)
-      return;
-    state.armDeg[idx] = degFromPointer(e.clientX, e.clientY);
-    render();
-  });
-
-  function endArmDrag() {
-    if (!state.drag || state.drag.kind !== "arm" || state.drag.idx !== idx)
-      return;
-    state.drag = null;
-    snapArm(idx);
-  }
-
-  armEl.addEventListener("pointerup", endArmDrag);
-  armEl.addEventListener("pointercancel", endArmDrag);
-});
-
-// Dials 0..2 drag/wheel
-dials.forEach((dialEl, idx) => {
-  dialEl.addEventListener("pointerdown", (e) => {
-    e.preventDefault();
-    setSelectedArm(idx);
-    state.drag = {
-      kind: "dial",
-      idx,
-      pointerId: e.pointerId,
-      startX: e.clientX,
-      startY: e.clientY,
-      startDeg: state.armDeg[idx],
-    };
-    dialEl.setPointerCapture(e.pointerId);
-  });
-
-  dialEl.addEventListener("pointermove", (e) => {
-    const d = state.drag;
-    if (!d || d.kind !== "dial" || d.idx !== idx || d.pointerId !== e.pointerId)
-      return;
-    if ((e.buttons & 1) !== 1) return;
-
-    let delta;
-    if (idx === 0) {
-      delta = (e.clientX - d.startX) * DIAL_SENSITIVITY;
-    } else {
-      delta = -(e.clientY - d.startY) * DIAL_SENSITIVITY;
-    }
-
-    state.armDeg[idx] = normalizeDeg(d.startDeg + delta);
-    render();
-  });
-
-  function endDialDrag() {
-    const d = state.drag;
-    if (!d || d.kind !== "dial" || d.idx !== idx) return;
-    state.drag = null;
-    snapArm(idx);
-  }
-
-  dialEl.addEventListener("pointerup", endDialDrag);
-  dialEl.addEventListener("pointercancel", endDialDrag);
-  dialEl.addEventListener("lostpointercapture", endDialDrag);
-
-  dialEl.addEventListener(
-    "wheel",
-    (e) => {
-      // allow browser zoom (Ctrl/⌘ + wheel / trackpad pinch)
-      if (e.ctrlKey || e.metaKey) return;
-
-      e.preventDefault();
-      e.stopPropagation();
-      setSelectedArm(idx);
-
-      const k = e.shiftKey ? WHEEL_SENSITIVITY_FINE : WHEEL_SENSITIVITY;
-      state.armDeg[idx] = normalizeDeg(state.armDeg[idx] + e.deltaY * k);
-      render();
-      scheduleWheelSnap(idx);
-    },
-    { passive: false },
-  );
-});
-
-// Scroll anywhere on face to rotate selected arm (or hovered arm)
-faceEl.addEventListener(
-  "wheel",
-  (e) => {
-    if (e.ctrlKey || e.metaKey) return;
-    e.preventDefault();
-
-    const hoveredIdx = armIdxFromWheelEvent(e);
-    const idx =
-      hoveredIdx != null && hoveredIdx < 3 ? hoveredIdx : state.selectedArm;
-    if (idx !== state.selectedArm) setSelectedArm(idx);
-
-    const k = e.shiftKey ? WHEEL_SENSITIVITY_FINE : WHEEL_SENSITIVITY;
-    state.armDeg[idx] = normalizeDeg(state.armDeg[idx] + e.deltaY * k);
-    render();
-    scheduleWheelSnap(idx);
+const armsController = createArmsController({
+  state,
+  arms,
+  dials,
+  faceEl: elements.faceEl,
+  symbolsEl: elements.symbolsEl,
+  symbolForDeg,
+  SYMBOL_RING,
+  dialFrameUrls: DIAL_FRAME_URLS,
+  dialFrameStepDeg: DIAL_FRAME_STEP_DEG,
+  dialSensitivity: DIAL_SENSITIVITY,
+  wheelSensitivity: WHEEL_SENSITIVITY,
+  wheelSensitivityFine: WHEEL_SENSITIVITY_FINE,
+  onSelectionChange: () => {
+    panelUI.updateSpotlight();
   },
-  { passive: false },
-);
+  onStateChanged: () => {
+    panelUI.updateSpotlight();
 
-let lastFaceTapAt = 0
+    const didCancel = answerArm.cancelReadingIfQuestionChanged(
+      armsController.currentQuestionSymbolDegs,
+      { pauseMs: READING_TIMING.pauseAfterFinalTurnMs },
+    );
 
+    if (didCancel) {
+      panelUI.showReadingEmptyState();
+      panelUI.clearReadingAvailable();
+    }
+  },
+  onDescribeSymbol: (symbol) => {
+    panelUI.openDictionaryForSymbol(symbol);
+  },
+});
+
+const answerArm = createAnswerArmController({
+  state,
+  applyArm: armsController.applyArm,
+});
+
+/* Face Interaction Helpers */
 function isNearFaceCenter(e) {
-  const rect = faceEl.getBoundingClientRect()
-  const cx = rect.left + rect.width / 2
-  const cy = rect.top + rect.height / 2
+  const rect = elements.faceEl.getBoundingClientRect();
+  const cx = rect.left + rect.width / 2;
+  const cy = rect.top + rect.height / 2;
 
-  const dx = e.clientX - cx
-  const dy = e.clientY - cy
-  const distance = Math.hypot(dx, dy)
+  const dx = e.clientX - cx;
+  const dy = e.clientY - cy;
+  const distance = Math.hypot(dx, dy);
 
-  // Center tap zone: about 22% of the face radius.
-  const centerRadius = rect.width * 0.22
-
-  return distance <= centerRadius
+  const centerRadius = rect.width * 0.22;
+  return distance <= centerRadius;
 }
 
-faceEl.addEventListener("pointerup", (e) => {
-  if (!isNearFaceCenter(e)) return
+/* App Actions */
+clearReadingAction = () => {
+  answerArm.cancelActiveReading({
+    pauseMs: READING_TIMING.pauseAfterFinalTurnMs,
+  });
 
-  const now = performance.now()
-  const isDoubleTap = now - lastFaceTapAt < 320
-  lastFaceTapAt = now
+  panelUI.showReadingEmptyState();
+  panelUI.clearReadingAvailable();
+  panelUI.updatePanelButtons();
+};
 
-  if (!isDoubleTap) return
+runConcentrate = async () => {
+  if (!elements.answersEl) return;
+  if (answerArm.idle.isReading) return;
 
-  e.preventDefault()
-
-  if (idle.isReading) {
-    resetBtn.click()
-  } else {
-    concentrateBtn.click()
-  }
-})
-
-concentrateBtn.addEventListener("click", async () => {
-  if (!answersEl) return;
-  if (idle.isReading) return;
-
-  const sequence = generateAnswerSequence();
+  const sequence = generateAnswerSequence(SYMBOL_RING);
 
   const entry = document.createElement("div");
   entry.className = "reading-entry";
+  entry.innerHTML = `<div class="reading-card-list"></div>`;
 
-  entry.innerHTML = `
-    <div class="reading-card-list"></div>
-  `;
+  elements.answersEl.innerHTML = "";
+  elements.answersEl.appendChild(entry);
 
-  answersEl.innerHTML = ''
-  answersEl.appendChild(entry)
-
-  if (isMobileLayout()) {
-    markReadingAvailable()
-    readingTabBtn?.focus()
-    announceStatus("Reading is available in the Reading tab")
+  if (panelUI.isMobileLayout()) {
+    panelUI.markReadingAvailable();
+    elements.readingTabBtn?.focus();
+    panelUI.announceStatus("Reading is available in the Reading tab");
   } else {
-    clearReadingAvailable()
-    showReadingPanel()
-    panelReadingEl?.focus()
+    panelUI.clearReadingAvailable();
+    panelUI.showReadingPanel();
+    elements.panelReadingEl?.focus();
   }
 
-  updatePanelButtons();
+  panelUI.updatePanelButtons();
 
   const cardListEl = entry.querySelector(".reading-card-list");
   if (!cardListEl) return;
 
-  const readingCompleted = await playAnswerSequence(sequence, {
+  const readingCompleted = await playAnswerSequence({
+    state,
+    answerArm,
+    getQuestionSymbolDegs: armsController.currentQuestionSymbolDegs,
+    applyArm: armsController.applyArm,
+    sequence,
     onFirstLanding: ({ symbol, symbolIndex }) => {
-      highlightSymbol(symbol)
+      panelUI.highlightSymbol(symbol);
 
       cardListEl.insertAdjacentHTML(
-        'beforeend',
-        readingCardHtml({ symbol, symbolIndex })
-      )
+        "beforeend",
+        panelUI.readingCardHtml({ symbol, symbolIndex }),
+      );
 
-      updatePanelButtons();
-      markReadingAvailable();
+      panelUI.updatePanelButtons();
+      panelUI.markReadingAvailable();
     },
-
     onDepthChange: ({ symbol, symbolIndex, depthLevel }) => {
-      highlightSymbol(symbol)
-      updateReadingCardDepth(symbolIndex, depthLevel, entry);
+      panelUI.highlightSymbol(symbol);
+      panelUI.updateReadingCardDepth(symbolIndex, depthLevel, entry);
     },
   });
 
   if (readingCompleted) {
-    announceStatus("Reading finished")
+    panelUI.announceStatus("Reading finished");
+  }
+};
+
+/* Event Listeners */
+elements.concentrateBtn.addEventListener("click", runConcentrate);
+
+elements.resetBtn.addEventListener("click", () => {
+  clearReadingAction();
+  armsController.resetQuestionArms();
+});
+
+let lastFaceTapAt = 0;
+elements.faceEl.addEventListener("pointerup", (e) => {
+  if (!isNearFaceCenter(e)) return;
+
+  const now = performance.now();
+  const isDoubleTap = now - lastFaceTapAt < 320;
+  lastFaceTapAt = now;
+
+  if (!isDoubleTap) return;
+
+  e.preventDefault();
+
+  if (answerArm.idle.isReading) {
+    elements.resetBtn.click();
+  } else {
+    elements.concentrateBtn.click();
   }
 });
 
-function showReadingEmptyState() {
-  if (!answersEl) return
-
-  answersEl.innerHTML = `
-    <div class="reading-entry reading-empty">
-      <div class="reading-empty-title">No reading yet</div>
-
-      <div class="reading-empty-mark" aria-hidden="true">✦</div>
-
-      <p>
-        Set the three question arms, then press <strong>Concentrate</strong>.
-        The answer arm will move through symbols and build a reading here.
-      </p>
-    </div>
-  `
-}
-
-panelConcentrateBtn?.addEventListener("click", () => {
-  concentrateBtn.click();
-  closeMobilePanel();
-});
-
-panelClearBtn?.addEventListener("click", () => {
-  cancelActiveReading({
-    clearAnswers: true,
-    returnToArms: false,
-  });
-  showReadingEmptyState();
-  clearReadingAvailable();
-  updatePanelButtons();
-});
-
-function updatePanelButtons() {
-  const hasReading = answersEl.querySelector(".reading-card") !== null;
-
-  panelClearBtn.hidden = !hasReading;
-}
-
-resetBtn.addEventListener('click', () => {
-  cancelActiveReading({
-    clearAnswers: true,
-    returnToArms: true,
-  })
-
-  setSelectedArm(0)
-
-  animateArmTo(0, 0, 220)
-  animateArmTo(1, 120, 220)
-  animateArmTo(2, 240, 220)
-
-  showReadingEmptyState();
-  clearReadingAvailable();
-  updatePanelButtons();
-});
-
-function handlePanelTabClick(tabName) {
-  const tabMap = {
-    arms: armsTabBtn,
-    reading: readingTabBtn,
-    dictionary: dictionaryTabBtn,
-  }
-
-  const clickedTab = tabMap[tabName]
-  const clickedActiveTab = clickedTab?.classList.contains("active")
-
-  if (isMobileLayout() && clickedActiveTab && isMobilePanelOpen()) {
-    closeMobilePanel();
-    return
-  }
-
-  showPanelTab(tabName)
-  openMobilePanel()
-  if (tabName === "reading") {
-    clearReadingAvailable()
-  }
-}
-
-function tabNameForButton(btn) {
-  if (!btn) return null
-  if (btn === armsTabBtn) return "arms"
-  if (btn === readingTabBtn) return "reading"
-  if (btn === dictionaryTabBtn) return "dictionary"
-  return null
-}
-
-function moveTabFocus(step) {
-  const tabs = [armsTabBtn, readingTabBtn, dictionaryTabBtn].filter(Boolean)
-  const activeIdx = tabs.indexOf(document.activeElement)
-  if (tabs.length === 0 || activeIdx === -1) return
-
-  const nextIdx = (activeIdx + step + tabs.length) % tabs.length
-  const nextTab = tabs[nextIdx]
-  const nextName = tabNameForButton(nextTab)
-  if (!nextName) return
-
-  nextTab.focus()
-  handlePanelTabClick(nextName)
-}
-
-sideTabsEl?.addEventListener("keydown", (e) => {
-  if (!["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", "Home", "End"].includes(e.key)) {
-    return
-  }
-
-  e.preventDefault()
-
-  if (e.key === "ArrowUp" || e.key === "ArrowLeft") {
-    moveTabFocus(-1)
-    return
-  }
-
-  if (e.key === "ArrowDown" || e.key === "ArrowRight") {
-    moveTabFocus(1)
-    return
-  }
-
-  if (e.key === "Home") {
-    armsTabBtn?.focus()
-    handlePanelTabClick("arms")
-    return
-  }
-
-  dictionaryTabBtn?.focus()
-  handlePanelTabClick("dictionary")
-})
-
-armsTabBtn?.addEventListener("click", () => {
-  handlePanelTabClick("arms")
-})
-
-readingTabBtn?.addEventListener("click", () => {
-  handlePanelTabClick("reading")
-})
-
-dictionaryTabBtn?.addEventListener("click", () => {
-  handlePanelTabClick("dictionary")
-})
-
-skipToArmsLink?.addEventListener("click", (e) => {
-  e.preventDefault()
-  showPanelTab("arms")
-  openMobilePanel()
-  panelArmsEl?.focus()
-})
-
-answersEl?.addEventListener("click", (e) => {
-  const cardEl = e.target.closest(".reading-card")
-  if (!cardEl) return
-
-  const symbol = symbolByDeg(Number(cardEl.dataset.symbolDeg))
-  if (!symbol) return
-
-  renderDictionarySymbol(symbol)
-  showDictionaryPanel()
-  openMobilePanel()
-})
-
-answersEl?.addEventListener("keydown", (e) => {
-  if (e.key !== "Enter" && e.key !== " ") return
-
-  const cardEl = e.target.closest(".reading-card")
-  if (!cardEl) return
-
-  e.preventDefault()
-
-  const symbol = symbolByDeg(Number(cardEl.dataset.symbolDeg))
-  if (!symbol) return
-
-  renderDictionarySymbol(symbol)
-  showDictionaryPanel()
-  openMobilePanel()
-})
-
-// ---- init ----
-buildArmSelectors();
-buildSymbols();
-buildDials();
-setSelectedArm(0);
-showReadingEmptyState();
-buildDictionarySelect()
-renderDictionarySymbol(SYMBOL_RING[0])
-render();
-pickNewIdleTarget(performance.now());
-requestAnimationFrame(idleLoop);
+/* Lifecycle */
+panelUI.init();
+panelUI.bindEvents();
+armsController.init();
+armsController.bindInteractions();
+panelUI.updateSpotlight();
+answerArm.startIdleLoop();

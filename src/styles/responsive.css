@@ -16,6 +16,12 @@
     padding: 12px 16px;
     align-items: center;
 
+    .header-copy {
+      align-items: center;
+      gap: 10px;
+      min-width: 0;
+    }
+
     h1 {
       line-height: 1;
       transform: none;
