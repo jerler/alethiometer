@@ -6,7 +6,12 @@ const symbolIconModules = import.meta.glob('../assets/symbols/*.png', {
 const symbolIcons = Object.fromEntries(
   Object.entries(symbolIconModules).map(([path, url]) => {
     const file = path.split('/').pop()
-    const key = file ? file.replace(/\.png$/i, '') : ''
+    const key = file
+      ? file
+          .replace(/\.png$/i, '')
+          .toLowerCase()
+          .replace(/[^a-z0-9]+/g, '')
+      : ''
     return [key, url]
   }),
 )
