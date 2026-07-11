@@ -235,7 +235,30 @@ elements.faceEl.addEventListener("pointerup", (e) => {
   }
 });
 
+/* Preload Assets for performance */
+async function preloadImages() {
+  const sources = [
+    ...SYMBOL_RING.map(s => s.image),
+    ...armSvgUrls,
+    ...DIAL_FRAME_URLS,
+  ];
+
+  await Promise.all(
+    sources.map(src =>
+      new Promise(resolve => {
+        const img = new Image();
+
+        img.onload = resolve;
+        img.onerror = resolve; // Don't hang if one image fails
+
+        img.src = src;
+      })
+    )
+  );
+}
+
 /* Lifecycle */
+await preloadImages();
 panelUI.init();
 panelUI.bindEvents();
 armsController.init();
