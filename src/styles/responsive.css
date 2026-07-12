@@ -283,3 +283,41 @@
     letter-spacing: 0.025em;
   }
 }
+
+@media (max-width: 420px) and (max-height: 740px) {
+  .tutorial-card {
+    width: calc(100vw - 32px);
+    max-height: 60dvh;
+    padding: 15px;
+    border-radius: 16px;
+    overscroll-behavior: contain;
+  }
+
+  .tutorial-progress {
+    margin-bottom: 6px;
+  }
+
+  .tutorial-card h2 {
+    margin-bottom: 9px;
+    font-size: 18px;
+  }
+
+  .tutorial-body p {
+    margin-bottom: 9px;
+    line-height: 1.45;
+  }
+
+  .tutorial-example {
+    margin-top: 10px;
+    padding: 10px 12px;
+  }
+
+  .tutorial-actions {
+    gap: 8px;
+    margin-top: 14px;
+  }
+
+  .tutorial-actions button {
+    padding: 10px 14px;
+  }
+}

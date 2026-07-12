@@ -28,6 +28,40 @@ function isElementVisible(element) {
   );
 }
 
+function getDialTargetRect(selector) {
+  const dialEl = document.querySelector(selector);
+  if (!isElementVisible(dialEl)) return null;
+
+  const rect = dialEl.getBoundingClientRect();
+  const styles = window.getComputedStyle(dialEl);
+
+  // Use the dial's untransformed CSS dimensions so every spotlight
+  // receives the same square size regardless of rotation.
+  const width = Number.parseFloat(styles.width);
+  const height = Number.parseFloat(styles.height);
+  const size = Math.max(width, height);
+
+  const centerX = rect.left + rect.width / 2;
+  const centerY = rect.top + rect.height / 2;
+
+  return {
+    left: centerX - size / 2,
+    top: centerY - size / 2,
+    right: centerX + size / 2,
+    bottom: centerY + size / 2,
+    width: size,
+    height: size,
+  };
+}
+
+function dialTarget(selector) {
+  return {
+    getRect: () => getDialTargetRect(selector),
+    padding: 8,
+    radius: 18,
+  };
+}
+
 function expandRect(rect, padding = 8) {
   return {
     left: Math.max(0, rect.left - padding),
@@ -74,6 +108,7 @@ export function createTutorial({
     SYMBOL_RING[0];
 
   let currentStepIndex = 0;
+  let activeSteps = [];
   let snapshot = null;
   let resizeFrame = null;
   let announcementFrame = null;
@@ -92,30 +127,41 @@ export function createTutorial({
     });
   }
 
-  const steps = [
+  const allSteps = [
     {
       id: "introduction",
       title: "Welcome to the Alethiometer",
-      body: () => `
-        <p>
-          An alethiometer is a mystical instrument that reveals truths, but only to those who know how to read it.
-          Its answers are given through the layered meanings of its 36 symbols. Concentrate on your question and let the Dust of the universe flow through the golden compass.
-        </p>
-        <p>
-          Inspired by the truth-telling device from
-          <em>His Dark Materials</em> by Philip Pullman, this digital version
-          invites you to practice your own reading, and uncover hidden truths
-          in your life.
-        </p>
-        <p>
-          This short guide will teach you the basics for how to become a skilled reader of the alethiometer. You can reopen it
-          at any time with the <strong>?</strong> button.
-        </p>
-      `,
+      body: () => 
+        panelUI.isMobileLayout()
+          ? `
+            <p>
+              Inspired by Philip Pullman’s <em>His Dark Materials</em> trilogy, the alethiometer is a mysterious device whose 36 symbols can be used to commune with the universe and uncover hidden truths in your life.
+            </p>
+            <p>
+              This short guide will introduce you to the art of asking questions, interpreting symbols, and understanding the alethiometer’s answers. You can reopen it at any time by pressing the <strong>?</strong> button.
+            </p>
+          `
+          : `
+            <p>
+              An alethiometer is a mystical instrument that reveals truths, but only to those who know how to read it.
+              Its answers are given through the layered meanings of its 36 symbols. Concentrate on your question and let the Dust of the universe flow through the golden compass.
+            </p>
+            <p>
+              Inspired by the truth-telling device from
+              <em>His Dark Materials</em> by Philip Pullman, this digital version
+              invites you to practice your own reading, and uncover hidden truths
+              in your life.
+            </p>
+            <p>
+              This short guide will teach you the basics for how to become a skilled reader of the alethiometer. You can reopen it
+              at any time with the <strong>?</strong> button.
+            </p>
+          `,
       targets: () => [],
     },
     {
       id: "question-arms",
+      desktopOnly: true,
       title: "Ask your question with three symbols",
       body: () => `
         <p>
@@ -143,9 +189,70 @@ export function createTutorial({
         if (panelUI.isMobileLayout()) panelUI.closeMobilePanel();
       },
       targets: () => [
-        { selector: ".dial-0", padding: 8, radius: 18 },
-        { selector: ".dial-1", padding: 8, radius: 18 },
-        { selector: ".dial-2", padding: 8, radius: 18 },
+        dialTarget(".dial-0"),
+        dialTarget(".dial-1"),
+        dialTarget(".dial-2"),
+        { selector: "#armsTab", padding: 5, radius: 14 },
+        { selector: "#symbols", padding: 8, radius: 18, when: () => !panelUI.isMobileLayout() },
+      ],
+    },
+    {
+      id: "question-arms-mobile",
+      mobileOnly: true,
+      title: "Choose three symbols",
+      body: () => `
+        <p>
+          Each golden dial controls one of the three moveable question arms.
+          Turn a dial, drag an arm, or choose a symbol directly from the
+          <strong>Arms</strong> tab.
+        </p>
+      `,
+      prepare: () => {
+        panelUI.showPanelTab("arms");
+        panelUI.closeMobilePanel();
+      },
+      targets: () => [
+        dialTarget(".dial-0"),
+        dialTarget(".dial-1"),
+        dialTarget(".dial-2"),
+        { selector: "#armsTab", padding: 5, radius: 14 },
+      ],
+    },
+    {
+      id: "question-example-mobile",
+      mobileOnly: true,
+      title: "Shape your question",
+      mobileCardPosition: "center",
+      body: () => `
+        <p>
+          Choose three symbols that best represent the heart of your question.
+          There is no single correct choice; your relationship with the symbols
+          will deepen with practice.
+        </p>
+        <div class="tutorial-example">
+          <div class="tutorial-example-label">For example</div>
+          <p><q>How can I move through this change?</q></p>
+          <ul>
+            <li>
+              <strong>Hourglass</strong> for change and passing time
+            </li>
+            <li>
+              <strong>Anchor</strong> for what keeps you grounded
+            </li>
+            <li>
+              <strong>Bird</strong> for freedom or a new perspective
+            </li>
+          </ul>
+        </div>
+      `,
+      prepare: () => {
+        panelUI.showPanelTab("arms");
+        panelUI.closeMobilePanel();
+      },
+      targets: () => [
+        dialTarget(".dial-0"),
+        dialTarget(".dial-1"),
+        dialTarget(".dial-2"),
         { selector: "#armsTab", padding: 5, radius: 14 },
       ],
     },
@@ -158,10 +265,6 @@ export function createTutorial({
             <p>
               Take a breath, clear your mind, and focus on the question. Then double-tap the center of the
               alethiometer to begin the reading, or tap the <strong>Concentrate</strong> button at the bottom of the Arms tab.
-            </p>
-            <p>
-              Double-tapping the center again while concentrating resets
-              the compass back to its starting position.
             </p>
           `
           : `
@@ -179,6 +282,7 @@ export function createTutorial({
         if (panelUI.isMobileLayout()) panelUI.closeMobilePanel();
       },
       targets: () => [
+        { selector: "#armsTab", padding: 5, radius: 14 },
         {
           getRect: () => {
             const faceRect = elements.faceEl.getBoundingClientRect();
@@ -214,6 +318,7 @@ export function createTutorial({
     },
     {
       id: "reading",
+      desktopOnly: true,
       title: "Follow the answer arm",
       body: () => `
         <p>
@@ -239,8 +344,6 @@ export function createTutorial({
           </ul>
         </div>
       `,
-      mobileCardPosition: "lower",
-      mobileLayoutDelayMs: 260,
       prepare: () => {
         showDemoReading();
         panelUI.showPanelTab("reading");
@@ -249,31 +352,103 @@ export function createTutorial({
       targets: () => [
         { selector: "#readingTab", padding: 5, radius: 14 },
         { selector: "[data-tutorial-demo]", padding: 8, radius: 18 },
-        {
-          selector: ".arm-3 .arm-svg",
-          padding: 8,
-          radius: 14,
-          when: () => !panelUI.isMobileLayout(),
-        },
+        { selector: ".arm-3 .arm-svg", padding: 8, radius: 14 },
+      ],
+    },
+    {
+      id: "reading-mobile",
+      mobileOnly: true,
+      title: "Follow the answer arm",
+      body: () => `
+        <p>
+          The universe responds by guiding the fourth arm from symbol to symbol.
+          Each symbol it visits is added to the <strong>Reading</strong> tab in
+          the order it appears.
+        </p>
+        <p>
+          Each additional turn before the arm settles draws the interpretation
+          deeper into that symbol’s meanings.
+        </p>
+      `,
+      mobileCardPosition: "lower",
+      mobileLayoutDelayMs: 260,
+      prepare: () => {
+        showDemoReading();
+        panelUI.showPanelTab("reading");
+        panelUI.openMobilePanel();
+      },
+      targets: () => [
+        { selector: "#readingTab", padding: 5, radius: 14 },
+        { selector: "[data-tutorial-demo]", padding: 8, radius: 18 },
+      ],
+    },
+    {
+      id: "reading-example-mobile",
+      mobileOnly: true,
+      title: "Read beneath the surface",
+      body: () => `
+        <div class="tutorial-example">
+          <div class="tutorial-example-label">For example</div>
+          <p><strong>Serpent</strong></p>
+          <ul>
+            <li>
+              A <strong>primary</strong> meaning might suggest
+              <strong>cunning</strong>.
+            </li>
+            <li>
+              A <strong>secondary</strong> meaning might suggest
+              <strong>temptation</strong>.
+            </li>
+            <li>
+              A <strong>deep</strong> meaning might suggest
+              <strong>rebirth</strong> or
+              <strong>shedding one’s skin</strong>.
+            </li>
+          </ul>
+        </div>
+      `,
+      mobileCardPosition: "lower",
+      mobileLayoutDelayMs: 260,
+      prepare: () => {
+        showDemoReading();
+        panelUI.showPanelTab("reading");
+        panelUI.openMobilePanel();
+      },
+      targets: () => [
+        { selector: "#readingTab", padding: 5, radius: 14 },
+        { selector: "[data-tutorial-demo]", padding: 8, radius: 18 },
       ],
     },
     {
       id: "dictionary",
       title: "Explore the Dictionary",
-      body: () => `
-        <p>
-          The Dictionary describes possible layers of meaning for every symbol.
-          It is meant to be a guide to help get you started rather than be an authoritative source: you must combine its suggestions with
-          your original question as well as your own interpretations and associations.
-        </p>
-        <p>
-          You can also open a symbol here by selecting a reading card or by
-          double-clicking or double-tapping a symbol on the alethiometer face.
-        </p>
-        <p>
-          Remember, the Dictionary is a tool to help you interpret the symbols, but the true answers come from your own understanding and intuition! Trust your gut.
-        </p>
-      `,
+      body: () => 
+        panelUI.isMobileLayout()
+          ? `
+            <p>
+              The Dictionary describes possible layers of meaning for every symbol.
+              Use it as a starting point, then connect its suggestions to your question
+              and your own intuition. Remember, the true answers come from your own understanding and associations, so trust your gut!
+            </p>
+            <p>
+              Open it from the <strong>Dictionary</strong> tab, a reading card,
+              or by double-tapping a symbol on the alethiometer.
+            </p>
+          `
+          : `
+            <p>
+                The Dictionary describes possible layers of meaning for every symbol.
+                It is meant to be a guide to help get you started rather than be an authoritative source: you must combine its suggestions with
+                your original question as well as your own interpretations and associations.
+              </p>
+              <p>
+                You can also open a symbol here by selecting a reading card or by
+                double-clicking or double-tapping a symbol on the alethiometer face.
+              </p>
+              <p>
+                Remember, the Dictionary is a tool to help you interpret the symbols, but the true answers come from your own understanding and intuition! Trust your gut.
+              </p>
+          `,
       mobileCardPosition: "lower",
       mobileLayoutDelayMs: 260,
       prepare: () => {
@@ -298,9 +473,25 @@ export function createTutorial({
           The <strong>?</strong> button will always reopen this guide.
         </p>
       `,
+      mobileLayoutDelayMs: 240,
+      prepare: () => {
+        if (!panelUI.isMobileLayout()) return;
+
+        panelUI.showPanelTab("arms");
+        panelUI.closeMobilePanel();
+      },
       targets: () => [],
     },
   ];
+
+  function stepsForCurrentLayout() {
+    const isMobile = panelUI.isMobileLayout();
+
+    return allSteps.filter((step) => {
+      if (isMobile) return !step.desktopOnly;
+      return !step.mobileOnly;
+    });
+  }
 
   function storageValue() {
     if (!canUseLocalStorage()) return null;
@@ -332,7 +523,7 @@ export function createTutorial({
 
     announcementFrame = requestAnimationFrame(() => {
       announcementEl.textContent =
-        `Step ${currentStepIndex + 1} of ${steps.length}: ${step.title}.`;
+        `Step ${currentStepIndex + 1} of ${activeSteps.length}: ${step.title}.`;
 
       announcementFrame = null;
     });
@@ -439,7 +630,7 @@ export function createTutorial({
   function renderSpotlights() {
     if (!rootEl || rootEl.hidden) return;
 
-    const step = steps[currentStepIndex];
+    const step = activeSteps[currentStepIndex];
     const targetRects = step.targets().map(resolveTargetRect).filter(Boolean);
 
     const width = window.innerWidth;
@@ -492,7 +683,26 @@ export function createTutorial({
     const cardWidth = Math.min(cardRect.width, window.innerWidth - viewportPadding * 2);
     const cardHeight = Math.min(cardRect.height, window.innerHeight - viewportPadding * 2);
 
-    const step = steps[currentStepIndex];
+    const step = activeSteps[currentStepIndex];
+    if (
+      panelUI.isMobileLayout() &&
+      step.mobileCardPosition === "center"
+    ) {
+      const centeredLeft = Math.max(
+        viewportPadding,
+        (window.innerWidth - cardWidth) / 2,
+      );
+
+      const centeredTop = Math.max(
+        viewportPadding,
+        (window.innerHeight - cardHeight) / 2,
+      );
+
+      cardEl.style.left = `${centeredLeft}px`;
+      cardEl.style.top = `${centeredTop}px`;
+      cardEl.style.visibility = "visible";
+      return;
+    }
     if (panelUI.isMobileLayout() && step.mobileCardPosition === "lower") {
       const centeredLeft = Math.max(viewportPadding, (window.innerWidth - cardWidth) / 2);
       const preferredTop = window.innerHeight * 0.47;
@@ -591,9 +801,9 @@ export function createTutorial({
   }
 
   function updateStepContent() {
-    const step = steps[currentStepIndex];
+    const step = activeSteps[currentStepIndex];
     const isFirst = currentStepIndex === 0;
-    const isLast = currentStepIndex === steps.length - 1;
+    const isLast = currentStepIndex === activeSteps.length - 1;
     const isMobile = panelUI.isMobileLayout();
 
     if (layoutTimer) {
@@ -602,7 +812,7 @@ export function createTutorial({
     }
 
     rootEl.dataset.tutorialStep = step.id;
-    progressEl.textContent = `Step ${currentStepIndex + 1} of ${steps.length}`;
+    progressEl.textContent = `Step ${currentStepIndex + 1} of ${activeSteps.length}`;
     titleEl.replaceChildren();
 
     const sparkleEl = document.createElement("span");
@@ -640,7 +850,11 @@ export function createTutorial({
   }
 
   function goToStep(index) {
-    currentStepIndex = Math.max(0, Math.min(steps.length - 1, index));
+    currentStepIndex = Math.max(
+      0,
+      Math.min(activeSteps.length - 1, index),
+    );
+
     updateStepContent();
   }
 
@@ -686,6 +900,7 @@ export function createTutorial({
     captureSnapshot();
     answerArm.pauseIdle();
 
+    activeSteps = stepsForCurrentLayout();
     currentStepIndex = 0;
     rootEl.hidden = false;
     setBackgroundInert(true);
@@ -749,7 +964,7 @@ export function createTutorial({
   backBtn?.addEventListener("click", () => goToStep(currentStepIndex - 1));
 
   nextBtn?.addEventListener("click", () => {
-    const isLast = currentStepIndex === steps.length - 1;
+    const isLast = currentStepIndex === activeSteps.length - 1;
 
     if (!isLast) {
       goToStep(currentStepIndex + 1);
