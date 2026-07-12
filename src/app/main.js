@@ -1,3 +1,4 @@
+import { inject } from "@vercel/analytics";
 import "../style.css";
 import { SYMBOL_RING, symbolForDeg } from "../data/constants.js";
 import arm0Url from "../assets/arm-0.svg";
@@ -16,6 +17,8 @@ import {
   playAnswerSequence,
 } from "../modules/reading-engine.js";
 import { createTutorial } from "../modules/tutorial.js";
+
+inject(); // vercel analytics
 
 /* DOM References */
 const elements = {
