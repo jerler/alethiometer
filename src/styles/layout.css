@@ -50,9 +50,9 @@ body {
     border-bottom: 1px solid var(--colour-border);
     background: linear-gradient(180deg, rgba(255,255,255,0.055), rgba(255,255,255,0.025));
 
-    .header-copy {
+    .header {
       display: flex;
-      align-items: baseline;
+      align-items: center;
       gap: 14px;
       min-width: 0;
     }

@@ -8,7 +8,7 @@ Imports the modular CSS files for the app.
 @import "./styles/variables.css";
 @import "./styles/main.css";
 @import "./styles/layout.css";
-@import "./styles/ui.css";
+@import "./styles/tutorial.css";
 @import "./styles/panel.css";
 @import "./styles/alethiometer.css";
 @import "./styles/symbols.css";

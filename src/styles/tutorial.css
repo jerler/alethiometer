@@ -1,0 +1,193 @@
+/*
+=============================================================
+Guided tutorial
+Dimmed spotlight overlay, highlighted targets, and tour card.
+=============================================================
+*/
+
+body.tutorial-open {
+  cursor: default;
+}
+
+.tutorial-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  overflow: hidden;
+}
+
+.tutorial-overlay[hidden] {
+  display: none;
+}
+
+.tutorial-spotlight-svg,
+.tutorial-outlines {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.tutorial-spotlight-svg {
+  pointer-events: auto;
+}
+
+.tutorial-dim {
+  fill: rgba(2, 8, 20, 0.82);
+}
+
+.tutorial-outlines {
+  pointer-events: none;
+}
+
+.tutorial-target-outline {
+  position: fixed;
+  border: 2px solid var(--color-accent-bright);
+  box-shadow:
+    0 0 0 4px rgba(255, 190, 120, 0.14),
+    0 0 26px rgba(255, 190, 120, 0.42);
+  animation: tutorialPulse 1800ms ease-in-out infinite;
+}
+
+.tutorial-card {
+  position: fixed;
+  z-index: 2;
+  width: min(390px, calc(100vw - 32px));
+  max-height: calc(100dvh - 32px);
+  overflow-y: auto;
+  padding: 22px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 22px;
+  background: rgba(8, 14, 28, 0.98);
+  box-shadow: var(--shadow-modal);
+  color: var(--colour-text-primary);
+}
+
+.tutorial-progress {
+  margin-bottom: 9px;
+  color: var(--color-accent);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+}
+
+.tutorial-card h2 {
+  margin: 0 0 12px;
+  font-size: 21px;
+  font-weight: 550;
+  line-height: 1.18;
+  letter-spacing: 0.025em;
+}
+
+.tutorial-body p {
+  margin: 0 0 12px;
+  color: var(--colour-text-secondary);
+  font-size: 14px;
+  line-height: 1.55;
+}
+
+.tutorial-body p:last-child {
+  margin-bottom: 0;
+}
+
+.tutorial-example {
+  margin-top: 16px;
+  padding: 12px 14px;
+  border: 1px solid rgba(255, 190, 120, 0.2);
+  border-radius: 14px;
+  background: rgba(255, 190, 120, 0.07);
+}
+
+.tutorial-example-label {
+  margin-bottom: 5px;
+  color: var(--color-accent);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+}
+
+.tutorial-example p {
+  margin-bottom: 7px;
+  color: var(--colour-text-primary);
+}
+
+.tutorial-example ul {
+  margin: 0;
+  padding-left: 18px;
+  color: var(--colour-text-secondary);
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.tutorial-example li + li {
+  margin-top: 3px;
+}
+
+.tutorial-remember {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  margin-top: 18px;
+  color: var(--colour-text-secondary);
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.tutorial-remember[hidden] {
+  display: none;
+}
+
+.tutorial-remember input {
+  width: 16px;
+  height: 16px;
+  margin: 2px 0 0;
+  accent-color: rgb(255, 190, 120);
+}
+
+.tutorial-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.tutorial-navigation {
+  display: flex;
+  gap: 8px;
+  margin-left: auto;
+}
+
+.tutorial-actions button {
+  min-width: 84px;
+}
+
+.tutorial-skip {
+  border-color: var(--border-strong);
+  background: var(--surface-1);
+  color: var(--colour-text-secondary);
+}
+
+.tutorial-next,
+.tutorial-remember-button {
+  border-color: rgba(255, 190, 120, 0.38);
+  background: rgba(255, 190, 120, 0.16);
+  color: var(--color-accent-bright);
+}
+
+@keyframes tutorialPulse {
+  0%,
+  100% {
+    box-shadow:
+      0 0 0 4px rgba(255, 190, 120, 0.12),
+      0 0 20px rgba(255, 190, 120, 0.3);
+  }
+
+  50% {
+    box-shadow:
+      0 0 0 6px rgba(255, 190, 120, 0.2),
+      0 0 32px rgba(255, 190, 120, 0.5);
+  }
+}

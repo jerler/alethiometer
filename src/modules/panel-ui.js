@@ -34,9 +34,6 @@ export function createPanelUI({
     spotlightImgEl,
     spotlightNameEl,
     spotlightMediaEl,
-    howToPlayBtn,
-    howToPlayModal,
-    howToPlayClose,
     skipToArmsLink,
     a11yStatusEl,
   } = elements;
@@ -515,18 +512,6 @@ export function createPanelUI({
     panelClearBtn.hidden = !hasReading;
   }
 
-  /* Modal */
-  function openHowToPlay() {
-    if (!howToPlayModal) return;
-    howToPlayModal.hidden = false;
-    howToPlayClose?.focus();
-  }
-
-  function closeHowToPlay() {
-    if (!howToPlayModal) return;
-    howToPlayModal.hidden = true;
-    howToPlayBtn?.focus();
-  }
 
   /* Tab Navigation */
   function handlePanelTabClick(tabName) {
@@ -685,18 +670,6 @@ export function createPanelUI({
       openDictionaryForSymbol(symbol);
     });
 
-    howToPlayBtn?.addEventListener("click", openHowToPlay);
-    howToPlayClose?.addEventListener("click", closeHowToPlay);
-
-    howToPlayModal?.addEventListener("click", (e) => {
-      if (e.target === howToPlayModal) closeHowToPlay();
-    });
-
-    document.addEventListener("keydown", (e) => {
-      if (e.key === "Escape" && howToPlayModal && !howToPlayModal.hidden) {
-        closeHowToPlay();
-      }
-    });
   }
 
   /* Lifecycle */
@@ -717,6 +690,8 @@ export function createPanelUI({
     showReadingPanel,
     showPanelTab,
     openMobilePanel,
+    closeMobilePanel,
+    isMobilePanelOpen,
     clearReadingAvailable,
     markReadingAvailable,
     updatePanelButtons,

@@ -11,7 +11,7 @@
 
     <div id="app">
       <header>
-        <div class="header-copy">
+        <div class="header">
           <h1>Alethiometer</h1>
           <p>
             Ask your question with the three moveable arms. Double click the
@@ -48,7 +48,6 @@
               tabindex="0"
             >
               <span class="side-tab-content">
-                <span class="tab-dot" aria-hidden="true"></span>
                 <span>Arms</span>
               </span>
             </button>
@@ -78,7 +77,6 @@
               tabindex="-1"
             >
               <span class="side-tab-content">
-                <span class="tab-dot" aria-hidden="true"></span>
                 <span>Dictionary</span>
               </span>
             </button>
@@ -218,83 +216,74 @@
         </div>
       </main>
 
-      <div id="howToPlayModal" hidden>
+      <div id="tutorialOverlay" class="tutorial-overlay" hidden>
+        <svg
+          class="tutorial-spotlight-svg"
+          width="100%"
+          height="100%"
+          aria-hidden="true"
+        >
+          <defs>
+            <mask id="tutorialSpotlightMask" maskUnits="userSpaceOnUse" maskContentUnits="userSpaceOnUse">
+              <rect id="tutorialMaskBase" width="100%" height="100%" fill="white" />
+              <g id="tutorialMaskHoles"></g>
+            </mask>
+          </defs>
+
+          <rect
+            class="tutorial-dim"
+            width="100%"
+            height="100%"
+            mask="url(#tutorialSpotlightMask)"
+          ></rect>
+        </svg>
+
+        <div id="tutorialOutlines" class="tutorial-outlines" aria-hidden="true"></div>
+
         <section
-          class="how-to-play-modal"
+          class="tutorial-card"
           role="dialog"
           aria-modal="true"
-          aria-labelledby="howToPlayTitle"
+          aria-labelledby="tutorialTitle"
+          aria-describedby="tutorialBody"
         >
-          <button
-            class="modal-close-button"
-            type="button"
-            aria-label="Close how to play"
-          >
-            ×
-          </button>
-          <h2 id="howToPlayTitle">How to Read</h2>
-          <p>
-            The alethiometer is a mystical instrument that reveals truths, but
-            only to those who know how to read it. Its answers are given through
-            the layered meanings of its 36 symbols. Concentrate on your question
-            and let the Dust of the universe flow through the compass.
-          </p>
-          <p>
-            Inspired by the truth-telling device from
-            <em>His Dark Materials</em> by Philip Pullman, this digital version
-            invites you to practice your own reading, and uncover hidden truths
-            in your life.
-          </p>
+          <div id="tutorialProgress" class="tutorial-progress"></div>
+          <p
+            id="tutorialAnnouncement"
+            class="sr-only"
+            role="status"
+            aria-live="polite"
+            aria-atomic="true"
+          ></p>
+          <h2 id="tutorialTitle"></h2>
+          <div id="tutorialBody" class="tutorial-body"></div>
 
-          <div class="modal-separator" aria-hidden="true"></div>
+          <label id="tutorialRememberRow" class="tutorial-remember" hidden>
+            <input id="tutorialRemember" type="checkbox" checked />
+            <span>
+              Don’t show automatically next time I visit
+            </span>
+          </label>
 
-          <section class="how-to-play-instructions">
-            <h3>To make a reading</h3>
-            <div class="desktop-instructions">
-              <p>
-                First, ask your question by setting the three controllable arms
-                to relevant symbols. Use the dials, drag the arms, or set them
-                directly from the Arms tab. When ready, concentrate on your
-                question by clicking "concentrate" or by double-clicking the
-                center of the alethiometer.
-              </p>
-              <p>
-                The fourth arm then gives the answer. The more times it lands on
-                a symbol, the deeper the meaning it's trying to convey. Ex:
-                Hourglass may mean "time" when pointed at once, but with
-                repeated turns it might really suggest "impermanence", "legacy",
-                or even just "sand". The reading is yours to interpret.
-              </p>
-              <p>
-                To guide you, we have included a dictionary of some possible
-                meanings for each symbol, but every reader must learn to
-                communicate through their own interpretations.
-              </p>
+          <div class="tutorial-actions">
+            <button id="tutorialSkip" class="tutorial-skip" type="button">
+              Skip and don’t show again
+            </button>
+
+            <div class="tutorial-navigation">
+              <button id="tutorialBack" type="button" hidden>Back</button>
+              <button id="tutorialNext" class="tutorial-next" type="button">Next</button>
             </div>
 
-            <div class="mobile-instructions">
-              <p>
-                First, ask your question by setting the three controllable arms
-                to relevant symbols. Use the dials, drag the arms, or set them
-                directly from the Arms tab. When ready, double-tap the center of
-                the alethiometer to concentrate.
-              </p>
-
-              <p>
-                The fourth arm then gives the answer. The more times it lands on
-                a symbol, the deeper the meaning it's trying to convey. Ex:
-                Hourglass may mean "time" when pointed at once, but with
-                repeated turns it might really suggest "impermanence", "legacy",
-                or even just "sand". The reading is yours to interpret.
-              </p>
-
-              <p>
-                To guide you, we have included a dictionary of some possible
-                meanings for each symbol, but every reader must learn to
-                communicate through their own interpretations.
-              </p>
-            </div>
-          </section>
+            <button
+              id="tutorialRememberButton"
+              class="tutorial-remember-button"
+              type="button"
+              hidden
+            >
+              Finish and don’t show again
+            </button>
+          </div>
         </section>
       </div>
     </div>

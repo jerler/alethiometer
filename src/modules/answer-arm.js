@@ -175,6 +175,23 @@ export function createAnswerArmController({ state, applyArm }) {
     requestAnimationFrame(idleLoop);
   }
 
+  function pauseIdle() {
+    const now = performance.now();
+
+    idle.velocity = 0;
+    idle.lastTime = now;
+    idle.pausedUntil = Number.POSITIVE_INFINITY;
+  }
+
+  function resumeIdle() {
+    const now = performance.now();
+
+    idle.velocity = 0;
+    idle.lastTime = now;
+    idle.pausedUntil = 0;
+    pickNewIdleTarget(now);
+  }
+
   /* Public API */
   return {
     idle,
@@ -187,5 +204,7 @@ export function createAnswerArmController({ state, applyArm }) {
     randomDirection,
     directedDiffToSymbol,
     startIdleLoop,
+    pauseIdle,
+    resumeIdle,
   };
 }

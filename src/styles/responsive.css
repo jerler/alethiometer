@@ -1,3 +1,9 @@
+@media (prefers-reduced-motion: reduce) {
+  .tutorial-target-outline {
+    animation: none;
+  }
+}
+
 @media (max-width: 900px) {
   /* Mobile app layout */
   #app {
@@ -41,14 +47,6 @@
     }
   }
 
-  .desktop-instructions {
-    display: none;
-  }
-
-  .mobile-instructions {
-    display: block;
-  }
-
   #howToPlayBtn {
     width: 32px;
     height: 32px;
@@ -60,16 +58,6 @@
     font-size: 15px;
     font-weight: 600;
     line-height: 1;
-  }
-
-  #howToPlayModal {
-    place-items: start center;
-    padding: 14px;
-  }
-
-  .how-to-play-modal {
-    max-height: calc(100dvh - 28px);
-    padding: 20px 18px;
   }
 
   /* Bottom panel shell */
@@ -240,6 +228,45 @@
   /* Keep symbol icons inside the face at transition widths without shrinking them */
   .face {
     --symbol-radius: calc((var(--face-size) / 2) - calc(var(--face-size) * 0.092));
+  }
+}
+
+
+@media (max-width: 900px) {
+  .tutorial-card {
+    width: calc(100vw - 24px);
+    max-height: calc(100dvh - 24px);
+    padding: 18px;
+    border-radius: 18px;
+  }
+
+  .tutorial-card h2 {
+    font-size: 19px;
+  }
+
+  .tutorial-remember {
+    display: none;
+  }
+
+  .tutorial-actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .tutorial-navigation {
+    order: 1;
+    width: 100%;
+    margin-left: 0;
+  }
+
+  .tutorial-navigation button {
+    flex: 1;
+  }
+
+  .tutorial-skip,
+  .tutorial-remember-button {
+    order: 2;
+    width: 100%;
   }
 }
 

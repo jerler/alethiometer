@@ -15,6 +15,7 @@ import {
   generateAnswerSequence,
   playAnswerSequence,
 } from "../modules/reading-engine.js";
+import { createTutorial } from "../modules/tutorial.js";
 
 /* DOM References */
 const elements = {
@@ -38,8 +39,6 @@ const elements = {
   dictionarySelectEl: document.getElementById("dictionarySelect"),
   dictionaryDetailEl: document.getElementById("dictionaryDetail"),
   howToPlayBtn: document.getElementById("howToPlayBtn"),
-  howToPlayModal: document.getElementById("howToPlayModal"),
-  howToPlayClose: document.querySelector(".modal-close-button"),
   skipToArmsLink: document.getElementById("skipToArms"),
   a11yStatusEl: document.getElementById("a11yStatus"),
   spotlightImgEl: document.getElementById("spotlightImg"),
@@ -127,6 +126,16 @@ const answerArm = createAnswerArmController({
   applyArm: armsController.applyArm,
 });
 
+const tutorial = createTutorial({
+  rootEl: document.getElementById("tutorialOverlay"),
+  state,
+  elements,
+  SYMBOL_RING,
+  panelUI,
+  armsController,
+  answerArm,
+});
+
 /* Face Interaction Helpers */
 function isNearFaceCenter(e) {
   const rect = elements.faceEl.getBoundingClientRect();
@@ -211,6 +220,10 @@ runConcentrate = async () => {
 /* Event Listeners */
 elements.concentrateBtn.addEventListener("click", runConcentrate);
 
+elements.howToPlayBtn.addEventListener("click", () => {
+  tutorial.start({ manual: true });
+});
+
 elements.resetBtn.addEventListener("click", () => {
   clearReadingAction();
   armsController.resetQuestionArms();
@@ -242,3 +255,4 @@ armsController.init();
 armsController.bindInteractions();
 panelUI.updateSpotlight();
 answerArm.startIdleLoop();
+requestAnimationFrame(() => tutorial.startAutomatically());
